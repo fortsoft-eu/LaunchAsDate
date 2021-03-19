@@ -20,9 +20,9 @@ namespace LaunchAsDate {
 
             InitializeComponent();
             Icon = Properties.Resources.Icon;
-            Text = Program.GetTitle() + Constants.NDashWithSpaces + Text;
+            Text = Program.GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Text;
 
-            textBox.Text = string.Join(" ", args);
+            textBox.Text = string.Join(Constants.Space, args);
             timer.Start();
         }
 

@@ -94,8 +94,8 @@ namespace LaunchAsDate {
                 foreach (string word in words) {
                     if (stringBuilder.Length == 0) {
                         stringBuilder.Append(word);
-                    } else if (TextRenderer.MeasureText(stringBuilder.ToString() + " " + word, label.Font).Width <= (icon == BoxIcon.None ? maxWidth : maxWidth - 50) || noWrap) {
-                        stringBuilder.Append(" " + word);
+                    } else if (TextRenderer.MeasureText(stringBuilder.ToString() + Constants.Space + word, label.Font).Width <= (icon == BoxIcon.None ? maxWidth : maxWidth - 50) || noWrap) {
+                        stringBuilder.Append(Constants.Space + word);
                     } else {
                         lines.Add(stringBuilder.ToString());
                         stringBuilder = new StringBuilder();
@@ -434,10 +434,10 @@ namespace LaunchAsDate {
             Button1, Button2, Button3, Button4
         }
 
-        [DllImport("user32")]
+        [DllImport("user32.dll")]
         private static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
 
-        [DllImport("user32")]
+        [DllImport("user32.dll")]
         private static extern bool EnableMenuItem(IntPtr hMenu, uint itemId, uint uEnable);
     }
 }

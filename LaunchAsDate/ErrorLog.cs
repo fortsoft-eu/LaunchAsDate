@@ -9,7 +9,7 @@ namespace LaunchAsDate {
     public static class ErrorLog {
         public static void WriteLine(Exception exception) {
             try {
-                using (StreamWriter streamWriter = File.AppendText(Path.Combine(Application.LocalUserAppDataPath, Constants.ErrorLog))) {
+                using (StreamWriter streamWriter = File.AppendText(Path.Combine(Application.LocalUserAppDataPath, Constants.ErrorLogFileName))) {
                     StringBuilder stringBuilder = new StringBuilder(DateTime.Now.ToString(Constants.ErrorLogTimeFormat));
                     stringBuilder.Append('\t');
                     stringBuilder.Append(exception.TargetSite.Name);

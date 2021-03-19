@@ -12,7 +12,7 @@ namespace LaunchAsDate {
         [STAThread]
         public static void Main(string[] args) {
             if (Environment.OSVersion.Platform != PlatformID.Win32NT) {
-                MessageBox.Show(Properties.Resources.MessageApplicationCannotRun, GetTitle() + Constants.NDashWithSpaces + Properties.Resources.CaptionError, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(Properties.Resources.MessageApplicationCannotRun, GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Properties.Resources.CaptionError, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             Settings settings = new Settings();
@@ -27,7 +27,7 @@ namespace LaunchAsDate {
             } catch (Exception exception) {
                 Debug.WriteLine(exception);
                 ErrorLog.WriteLine(exception);
-                MessageBox.Show(exception.Message, GetTitle() + Constants.NDashWithSpaces + Properties.Resources.CaptionError, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(exception.Message, GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Properties.Resources.CaptionError, MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
             if (argumentParser.HasArguments) {
@@ -51,14 +51,14 @@ namespace LaunchAsDate {
                     stringBuilder.AppendLine(Properties.Resources.HelpLine16.Replace("\\t", "\t")).AppendLine();
                     stringBuilder.AppendLine(Properties.Resources.HelpLine17.Replace("\\t", "\t")).AppendLine();
                     stringBuilder.AppendLine(Properties.Resources.HelpLine18.Replace("\\t", "\t"));
-                    MessageBox.Show(stringBuilder.ToString(), GetTitle() + Constants.NDashWithSpaces + Properties.Resources.CaptionHelp, MessageBoxButtons.OK, MessageBoxIcon.Question);
+                    MessageBox.Show(stringBuilder.ToString(), GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Properties.Resources.CaptionHelp, MessageBoxButtons.OK, MessageBoxIcon.Question);
                 } else if (argumentParser.IsTest) {
                     try {
                         Application.Run(new TestForm(args));
                     } catch (Exception exception) {
                         Debug.WriteLine(exception);
                         ErrorLog.WriteLine(exception);
-                        MessageBox.Show(exception.Message, GetTitle() + Constants.NDashWithSpaces + Properties.Resources.CaptionError, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(exception.Message, GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Properties.Resources.CaptionError, MessageBoxButtons.OK, MessageBoxIcon.Error);
                         MessageBox.Show(Properties.Resources.MessageApplicationError, GetTitle(), MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 } else if (argumentParser.IsThisTest) {
@@ -67,7 +67,7 @@ namespace LaunchAsDate {
                     } catch (Exception exception) {
                         Debug.WriteLine(exception);
                         ErrorLog.WriteLine(exception);
-                        MessageBox.Show(exception.Message, GetTitle() + Constants.NDashWithSpaces + Properties.Resources.CaptionError, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(exception.Message, GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Properties.Resources.CaptionError, MessageBoxButtons.OK, MessageBoxIcon.Error);
                         MessageBox.Show(Properties.Resources.MessageApplicationError, GetTitle(), MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 } else {
@@ -86,7 +86,7 @@ namespace LaunchAsDate {
                     } catch (Exception exception) {
                         Debug.WriteLine(exception);
                         ErrorLog.WriteLine(exception);
-                        MessageBox.Show(exception.Message, GetTitle() + Constants.NDashWithSpaces + Properties.Resources.CaptionError, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(exception.Message, GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Properties.Resources.CaptionError, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             } else {
@@ -95,7 +95,7 @@ namespace LaunchAsDate {
                 } catch (Exception exception) {
                     Debug.WriteLine(exception);
                     ErrorLog.WriteLine(exception);
-                    MessageBox.Show(exception.Message, GetTitle() + Constants.NDashWithSpaces + Properties.Resources.CaptionError, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show(exception.Message, GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Properties.Resources.CaptionError, MessageBoxButtons.OK, MessageBoxIcon.Error);
                     MessageBox.Show(Properties.Resources.MessageApplicationError, GetTitle(), MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }

@@ -81,7 +81,7 @@ namespace LaunchAsDate {
                         workingFolderPathTemp = textBox3.Text;
                     }
                     if (string.IsNullOrWhiteSpace(textBox4.Text) || textBox4.Text == shortcutNameTemp) {
-                        textBox4.Text = Program.GetTitle() + " " + Path.GetFileNameWithoutExtension(textBox1.Text);
+                        textBox4.Text = Program.GetTitle() + Constants.Space + Path.GetFileNameWithoutExtension(textBox1.Text);
                         textBox4.SelectAll();
                         shortcutNameTemp = textBox4.Text;
                     }
@@ -89,7 +89,7 @@ namespace LaunchAsDate {
             } catch (Exception exception) {
                 Debug.WriteLine(exception);
                 ErrorLog.WriteLine(exception);
-                dialog = new MessageForm(this, exception.Message, Program.GetTitle() + Constants.NDashWithSpaces + Properties.Resources.CaptionError, MessageForm.Buttons.OK, MessageForm.BoxIcon.Error);
+                dialog = new MessageForm(this, exception.Message, Program.GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Properties.Resources.CaptionError, MessageForm.Buttons.OK, MessageForm.BoxIcon.Error);
                 dialog.ShowDialog();
             } finally {
                 textBox1.Focus();
@@ -197,7 +197,7 @@ namespace LaunchAsDate {
             } catch (Exception exception) {
                 Debug.WriteLine(exception);
                 ErrorLog.WriteLine(exception);
-                dialog = new MessageForm(this, exception.Message, Program.GetTitle() + Constants.NDashWithSpaces + Properties.Resources.CaptionError, MessageForm.Buttons.OK, MessageForm.BoxIcon.Error);
+                dialog = new MessageForm(this, exception.Message, Program.GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Properties.Resources.CaptionError, MessageForm.Buttons.OK, MessageForm.BoxIcon.Error);
                 dialog.ShowDialog();
             } finally {
                 textBox3.Focus();
@@ -230,7 +230,7 @@ namespace LaunchAsDate {
                 if (settings.WarningOk) {
                     process = new Process();
                     process.StartInfo.FileName = Application.ExecutablePath;
-                    process.StartInfo.Arguments = string.Join(" ", arguments);
+                    process.StartInfo.Arguments = string.Join(Constants.Space, arguments);
                     process.StartInfo.WorkingDirectory = Application.StartupPath;
                     process.Start();
                     SaveSettings();
@@ -243,7 +243,7 @@ namespace LaunchAsDate {
             } catch (Exception exception) {
                 Debug.WriteLine(exception);
                 ErrorLog.WriteLine(exception);
-                dialog = new MessageForm(this, exception.Message, Program.GetTitle() + Constants.NDashWithSpaces + Properties.Resources.CaptionError, MessageForm.Buttons.OK, MessageForm.BoxIcon.Error);
+                dialog = new MessageForm(this, exception.Message, Program.GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Properties.Resources.CaptionError, MessageForm.Buttons.OK, MessageForm.BoxIcon.Error);
                 dialog.ShowDialog();
             }
         }
@@ -308,7 +308,7 @@ namespace LaunchAsDate {
                     workingFolderPathTemp = textBox3.Text;
                 }
                 if (string.IsNullOrWhiteSpace(textBox4.Text) || textBox4.Text == shortcutNameTemp) {
-                    textBox4.Text = Program.GetTitle() + " " + Path.GetFileNameWithoutExtension(textBox1.Text);
+                    textBox4.Text = Program.GetTitle() + Constants.Space + Path.GetFileNameWithoutExtension(textBox1.Text);
                     textBox4.SelectAll();
                     shortcutNameTemp = textBox4.Text;
                 }
@@ -317,7 +317,7 @@ namespace LaunchAsDate {
             } catch (Exception exception) {
                 Debug.WriteLine(exception);
                 ErrorLog.WriteLine(exception);
-                dialog = new MessageForm(this, exception.Message, Program.GetTitle() + Constants.NDashWithSpaces + Properties.Resources.CaptionError, MessageForm.Buttons.OK, MessageForm.BoxIcon.Error);
+                dialog = new MessageForm(this, exception.Message, Program.GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Properties.Resources.CaptionError, MessageForm.Buttons.OK, MessageForm.BoxIcon.Error);
                 dialog.ShowDialog();
             }
         }
@@ -365,7 +365,7 @@ namespace LaunchAsDate {
                     ShortcutFilePath = shortcutFilePath,
                     TargetPath = Application.ExecutablePath,
                     WorkingFolder = Application.StartupPath,
-                    Arguments = string.Join(" ", arguments),
+                    Arguments = string.Join(Constants.Space, arguments),
                     IconLocation = textBox1.Text
                 };
                 programShortcut.Create();
@@ -377,7 +377,7 @@ namespace LaunchAsDate {
             } catch (Exception exception) {
                 Debug.WriteLine(exception);
                 ErrorLog.WriteLine(exception);
-                dialog = new MessageForm(this, exception.Message, Program.GetTitle() + Constants.NDashWithSpaces + Properties.Resources.CaptionError, MessageForm.Buttons.OK, MessageForm.BoxIcon.Error);
+                dialog = new MessageForm(this, exception.Message, Program.GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Properties.Resources.CaptionError, MessageForm.Buttons.OK, MessageForm.BoxIcon.Error);
                 dialog.ShowDialog();
             }
         }
@@ -414,7 +414,7 @@ namespace LaunchAsDate {
             } catch (Exception exception) {
                 Debug.WriteLine(exception);
                 ErrorLog.WriteLine(exception);
-                dialog = new MessageForm(this, exception.Message, Program.GetTitle() + Constants.NDashWithSpaces + Properties.Resources.CaptionError, MessageForm.Buttons.OK, MessageForm.BoxIcon.Error);
+                dialog = new MessageForm(this, exception.Message, Program.GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Properties.Resources.CaptionError, MessageForm.Buttons.OK, MessageForm.BoxIcon.Error);
                 dialog.ShowDialog();
             }
         }

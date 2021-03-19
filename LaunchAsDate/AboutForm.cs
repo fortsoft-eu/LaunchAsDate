@@ -16,7 +16,7 @@ namespace LaunchAsDate {
         public AboutForm() {
             InitializeComponent();
 
-            Text = Properties.Resources.CaptionAbout + " " + Program.GetTitle();
+            Text = Properties.Resources.CaptionAbout + Constants.Space + Program.GetTitle();
             pictureBox.Image = Properties.Resources.Icon.ToBitmap();
 
             panel1.ContextMenu = new ContextMenu();
@@ -34,8 +34,8 @@ namespace LaunchAsDate {
                 foreach (string word in words) {
                     if (builder.Length == 0) {
                         builder.Append(word);
-                    } else if (TextRenderer.MeasureText(builder.ToString() + " " + word, label1.Font).Width <= defaultWidth - 70) {
-                        builder.Append(" " + word);
+                    } else if (TextRenderer.MeasureText(builder.ToString() + Constants.Space + word, label1.Font).Width <= defaultWidth - 70) {
+                        builder.Append(Constants.Space + word);
                     } else {
                         stringBuilder.AppendLine(builder.ToString());
                         builder = new StringBuilder();
@@ -96,7 +96,7 @@ namespace LaunchAsDate {
                 } catch (Exception exception) {
                     Debug.WriteLine(exception);
                     ErrorLog.WriteLine(exception);
-                    dialog = new MessageForm(this, exception.Message, Program.GetTitle() + Constants.NDashWithSpaces + Properties.Resources.CaptionError, MessageForm.Buttons.OK, MessageForm.BoxIcon.Error);
+                    dialog = new MessageForm(this, exception.Message, Program.GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Properties.Resources.CaptionError, MessageForm.Buttons.OK, MessageForm.BoxIcon.Error);
                     dialog.ShowDialog();
                 }
             }

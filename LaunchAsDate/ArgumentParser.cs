@@ -143,9 +143,9 @@ namespace LaunchAsDate {
                     if (int.Parse(span[2]) == 0) {
                         throw new ApplicationException(Properties.Resources.ExceptionMessageZ);
                     }
-                    if (string.Compare(span[3], "year", true) == 0 || string.Compare(span[3], "years", true) == 0) {
+                    if (span[3].Equals("year", StringComparison.OrdinalIgnoreCase) || span[3].Equals("years", StringComparison.OrdinalIgnoreCase)) {
                         dateTime = systemDateTime.AddYears(span[1] == "-" ? 0 - int.Parse(span[2]) : int.Parse(span[2]));
-                    } else if (string.Compare(span[3], "month", true) == 0 || string.Compare(span[3], "months", true) == 0) {
+                    } else if (span[3].Equals("month", StringComparison.OrdinalIgnoreCase) || span[3].Equals("months", StringComparison.OrdinalIgnoreCase)) {
                         dateTime = systemDateTime.AddMonths(span[1] == "-" ? 0 - int.Parse(span[2]) : int.Parse(span[2]));
                     } else {
                         dateTime = systemDateTime.AddDays(span[1] == "-" ? 0 - double.Parse(span[2]) : double.Parse(span[2]));
@@ -274,7 +274,7 @@ namespace LaunchAsDate {
         public string ArgumentString {
             get {
                 if (string.IsNullOrEmpty(argumentString) && arguments.Count > 0) {
-                    return string.Join(" ", arguments);
+                    return string.Join(Constants.Space, arguments);
                 }
                 return argumentString;
             }

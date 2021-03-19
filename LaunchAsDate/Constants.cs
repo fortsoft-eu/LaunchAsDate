@@ -10,11 +10,13 @@
         public const string ExtensionExe = ".exe";
         public const string ExtensionLnk = ".lnk";
 
-        public const string ErrorLog = "error.log";
-
+        public const string ErrorLogFileName = "error.log";
         public const string ErrorLogTimeFormat = "yyyy-MM-dd HH:mm:ss.fff";
 
-        public const string NDashWithSpaces = " – ";
+        public const string EmDash = "—";
+        public const string EnDash = "–";
+        public const string Underscore = "_";
+        public const string Space = " ";
 
         public const string ExampleApplicationFilePath = "C:\\Program Files\\Example Application\\example.exe";
         public const string ExampleWorkingFolderPath = "C:\\Program Files\\Example Application";
