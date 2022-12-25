@@ -1,4 +1,4 @@
-Released under MIT License.
+MIT License
 
 Copyright (c) 2020-2022 Petr Červinka - FortSoft <cervinka@fortsoft.eu>
 
