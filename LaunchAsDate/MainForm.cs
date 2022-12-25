@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FostSoft.Tools;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -10,21 +11,32 @@ using System.Windows.Forms;
 
 namespace LaunchAsDate {
     public partial class MainForm : Form {
+        private const int MOUSEEVENTF_LEFTDOWN = 0x02;
+        private const int MOUSEEVENTF_LEFTUP = 0x04;
+        private const int MOUSEEVENTF_RIGHTDOWN = 0x08;
+        private const int MOUSEEVENTF_RIGHTUP = 0x10;
+
+        [DllImport("user32.dll", EntryPoint = "mouse_event", SetLastError = true)]
+        private static extern void MouseEvent(uint dwFlags, uint dx, uint dy, uint cButtons, uint dwExtraInfo);
+
+        private Form dialog;
         private int textBoxClicks;
-        private Timer textBoxClicksTimer;
         private Point location;
         private Process process;
         private Settings settings;
-        private string workingFolderPathTemp, shortcutNameTemp, administratorRegPath;
-        private Form dialog;
+        private string workingDirectoryTemp, shortcutNameTemp, administratorRegPath;
+        private Timer textBoxClicksTimer;
 
         public MainForm(Settings settings) {
             Text = Program.GetTitle();
             Icon = Properties.Resources.Icon;
-            dialog = null;
 
-            textBoxClicks = 0;
             textBoxClicksTimer = new Timer();
+            textBoxClicksTimer.Interval = SystemInformation.DoubleClickTime;
+            textBoxClicksTimer.Tick += new EventHandler((sender, e) => {
+                textBoxClicksTimer.Stop();
+                textBoxClicks = 0;
+            });
 
             InitializeComponent();
 
@@ -48,7 +60,7 @@ namespace LaunchAsDate {
             numericUpDown1.Select(0, numericUpDown1.Text.Length);
             comboBox2.SelectedIndex = settings.SpanIndex < 0 || settings.SpanIndex > 2 ? 0 : settings.SpanIndex;
             textBox2.Text = settings.Arguments;
-            textBox3.Text = settings.WorkingFolderPath;
+            textBox3.Text = settings.WorkingDirectory;
             numericUpDown2.Minimum = Constants.IntervalMinimum;
             numericUpDown2.Maximum = Constants.IntervalMaximum;
             numericUpDown2.Value = settings.Interval < Constants.IntervalMinimum || settings.Interval > Constants.IntervalMaximum ? Constants.IntervalDefault : settings.Interval;
@@ -75,10 +87,10 @@ namespace LaunchAsDate {
             try {
                 if (openFileDialog.ShowDialog() == DialogResult.OK) {
                     textBox1.Text = openFileDialog.FileName;
-                    if (string.IsNullOrWhiteSpace(textBox3.Text) || !Directory.Exists(textBox3.Text) || textBox3.Text == workingFolderPathTemp) {
+                    if (string.IsNullOrWhiteSpace(textBox3.Text) || !Directory.Exists(textBox3.Text) || textBox3.Text == workingDirectoryTemp) {
                         textBox3.Text = Path.GetDirectoryName(textBox1.Text);
                         textBox3.SelectAll();
-                        workingFolderPathTemp = textBox3.Text;
+                        workingDirectoryTemp = textBox3.Text;
                     }
                     if (string.IsNullOrWhiteSpace(textBox4.Text) || textBox4.Text == shortcutNameTemp) {
                         textBox4.Text = Program.GetTitle() + Constants.Space + Path.GetFileNameWithoutExtension(textBox1.Text);
@@ -113,26 +125,23 @@ namespace LaunchAsDate {
             }
             location = e.Location;
             if (textBoxClicks == 3) {
+                textBoxClicks = 0;
+                MouseEvent(MOUSEEVENTF_LEFTUP, Convert.ToUInt32(Cursor.Position.X), Convert.ToUInt32(Cursor.Position.Y), 0, 0);
                 if (textBox.Multiline) {
-                    int selectionEnd = Math.Max(textBox.SelectionStart + textBox.SelectionLength, Math.Min(textBox.Text.IndexOf('\r', textBox.SelectionStart), textBox.Text.IndexOf('\n', textBox.SelectionStart)));
+                    int selectionEnd = Math.Min(textBox.Text.IndexOf(Constants.CarriageReturn, textBox.SelectionStart), textBox.Text.IndexOf(Constants.LineFeed, textBox.SelectionStart));
+                    if (selectionEnd < 0) {
+                        selectionEnd = textBox.TextLength;
+                    }
+                    selectionEnd = Math.Max(textBox.SelectionStart + textBox.SelectionLength, selectionEnd);
                     int selectionStart = Math.Min(textBox.SelectionStart, selectionEnd);
-                    do {
-                        selectionStart--;
-                    } while (selectionStart > 0 && textBox.Text[selectionStart] != '\n' && textBox.Text[selectionStart] != '\r');
+                    while (--selectionStart > 0 && textBox.Text[selectionStart] != Constants.LineFeed && textBox.Text[selectionStart] != Constants.CarriageReturn) { }
                     textBox.Select(selectionStart, selectionEnd - selectionStart);
                 } else {
                     textBox.SelectAll();
                 }
-                textBoxClicks = 0;
-                MouseEvent(MOUSEEVENTF_LEFTUP, Convert.ToUInt32(Cursor.Position.X), Convert.ToUInt32(Cursor.Position.X), 0, 0);
                 textBox.Focus();
             } else {
-                textBoxClicksTimer.Interval = SystemInformation.DoubleClickTime;
                 textBoxClicksTimer.Start();
-                textBoxClicksTimer.Tick += new EventHandler((s, t) => {
-                    textBoxClicksTimer.Stop();
-                    textBoxClicks = 0;
-                });
             }
         }
 
@@ -151,7 +160,7 @@ namespace LaunchAsDate {
         private void NumericUpDownKeyPress(object sender, KeyPressEventArgs e) {
             NumericUpDown numericUpDown = (NumericUpDown)sender;
             if (IsKeyLocked(Keys.Insert) && char.IsDigit(e.KeyChar) && !numericUpDown.ReadOnly) {
-                FieldInfo fieldInfo = numericUpDown.GetType().GetField("upDownEdit", BindingFlags.Instance | BindingFlags.NonPublic);
+                FieldInfo fieldInfo = numericUpDown.GetType().GetField(Constants.NumericUpDownEdit, BindingFlags.Instance | BindingFlags.NonPublic);
                 TextBox textBox = (TextBox)fieldInfo.GetValue(numericUpDown);
                 if (textBox.SelectionLength == 0 && textBox.SelectionStart < textBox.TextLength) {
                     int selectionStart = textBox.SelectionStart;
@@ -191,7 +200,7 @@ namespace LaunchAsDate {
                 if (folderBrowserDialog.ShowDialog() == DialogResult.OK) {
                     if (textBox3.Text != folderBrowserDialog.SelectedPath) {
                         textBox3.Text = folderBrowserDialog.SelectedPath;
-                        workingFolderPathTemp = textBox3.Text;
+                        workingDirectoryTemp = textBox3.Text;
                     }
                 }
             } catch (Exception exception) {
@@ -230,7 +239,7 @@ namespace LaunchAsDate {
                 if (settings.WarningOk) {
                     process = new Process();
                     process.StartInfo.FileName = Application.ExecutablePath;
-                    process.StartInfo.Arguments = string.Join(Constants.Space, arguments);
+                    process.StartInfo.Arguments = string.Join(Constants.Space.ToString(), arguments);
                     process.StartInfo.WorkingDirectory = Application.StartupPath;
                     process.Start();
                     SaveSettings();
@@ -266,19 +275,19 @@ namespace LaunchAsDate {
                 throw new ApplicationException(Properties.Resources.MessageApplicationNotSet);
             }
             if (comboBox1.SelectedIndex > 0) {
-                string[] spanUnit = new string[] { "day", "month", "year" };
+                string[] spanUnit = new string[] { Constants.EnglishDay, Constants.EnglishMonth, Constants.EnglishYear };
                 if (numericUpDown1.Value > 0) {
                     arguments.Add("/r");
-                    arguments.Add("+" + Math.Abs(numericUpDown1.Value).ToString("#") + spanUnit[comboBox2.SelectedIndex]);
+                    arguments.Add(Constants.Plus.ToString() + Math.Abs(numericUpDown1.Value).ToString(Constants.NumberSign.ToString()) + spanUnit[comboBox2.SelectedIndex]);
                 } else if (numericUpDown1.Value < 0) {
                     arguments.Add("/r");
-                    arguments.Add("-" + Math.Abs(numericUpDown1.Value).ToString("#") + spanUnit[comboBox2.SelectedIndex]);
+                    arguments.Add(Constants.Hyphen.ToString() + Math.Abs(numericUpDown1.Value).ToString(Constants.NumberSign.ToString()) + spanUnit[comboBox2.SelectedIndex]);
                 } else {
                     throw new ApplicationException(Properties.Resources.ExceptionMessageZ);
                 }
             } else {
                 arguments.Add("/d");
-                arguments.Add(dateTimePicker.Value.ToString("yyyy-MM-dd"));
+                arguments.Add(dateTimePicker.Value.ToString(Constants.ISO8601DateFormat));
             }
             if (!string.IsNullOrWhiteSpace(textBox2.Text)) {
                 arguments.Add("/a");
@@ -302,10 +311,10 @@ namespace LaunchAsDate {
         private void MainFormDragDrop(object sender, DragEventArgs e) {
             try {
                 textBox1.Text = ((string[])e.Data.GetData(DataFormats.FileDrop, false))[0];
-                if (string.IsNullOrWhiteSpace(textBox3.Text) || !Directory.Exists(textBox3.Text) || textBox3.Text == workingFolderPathTemp) {
+                if (string.IsNullOrWhiteSpace(textBox3.Text) || !Directory.Exists(textBox3.Text) || textBox3.Text == workingDirectoryTemp) {
                     textBox3.Text = Path.GetDirectoryName(textBox1.Text);
                     textBox3.SelectAll();
-                    workingFolderPathTemp = textBox3.Text;
+                    workingDirectoryTemp = textBox3.Text;
                 }
                 if (string.IsNullOrWhiteSpace(textBox4.Text) || textBox4.Text == shortcutNameTemp) {
                     textBox4.Text = Program.GetTitle() + Constants.Space + Path.GetFileNameWithoutExtension(textBox1.Text);
@@ -322,17 +331,9 @@ namespace LaunchAsDate {
             }
         }
 
-        private void MainFormDragEnter(object sender, DragEventArgs e) {
-            if (e.Data.GetDataPresent(DataFormats.FileDrop, false)) {
-                e.Effect = DragDropEffects.All;
-            } else {
-                e.Effect = DragDropEffects.None;
-            }
-        }
+        private void MainFormDragEnter(object sender, DragEventArgs e) => e.Effect = e.Data.GetDataPresent(DataFormats.FileDrop, false) ? DragDropEffects.All : DragDropEffects.None;
 
-        private void Close(object sender, EventArgs e) {
-            Close();
-        }
+        private void Close(object sender, EventArgs e) => Close();
 
         private void ShowAbout(object sender, EventArgs e) {
             dialog = new AboutForm();
@@ -364,8 +365,8 @@ namespace LaunchAsDate {
                 ProgramShortcut programShortcut = new ProgramShortcut() {
                     ShortcutFilePath = shortcutFilePath,
                     TargetPath = Application.ExecutablePath,
-                    WorkingFolder = Application.StartupPath,
-                    Arguments = string.Join(Constants.Space, arguments),
+                    WorkingDirectory = Application.StartupPath,
+                    Arguments = string.Join(Constants.Space.ToString(), arguments),
                     IconLocation = textBox1.Text
                 };
                 programShortcut.Create();
@@ -394,13 +395,9 @@ namespace LaunchAsDate {
             }
         }
 
-        private void ValueChanged(object sender, EventArgs e) {
-            label6.Text = numericUpDown2.Value > 1 ? Properties.Resources.CaptionSeconds : Properties.Resources.CaptionSecond;
-        }
+        private void ValueChanged(object sender, EventArgs e) => label6.Text = numericUpDown2.Value > 1 ? Properties.Resources.CaptionSeconds : Properties.Resources.CaptionSecond;
 
-        private void MainFormClosing(object sender, FormClosingEventArgs e) {
-            SaveSettings();
-        }
+        private void MainFormClosing(object sender, FormClosingEventArgs e) => SaveSettings();
 
         private void FormActivated(object sender, EventArgs e) {
             if (dialog != null) {
@@ -410,7 +407,7 @@ namespace LaunchAsDate {
 
         private void OpenHelp(object sender, HelpEventArgs hlpevent) {
             try {
-                Process.Start(Properties.Resources.Website.TrimEnd('/').ToLowerInvariant() + '/' + Application.ProductName.ToLowerInvariant() + '/');
+                Process.Start(Properties.Resources.Website.TrimEnd(Constants.Slash).ToLowerInvariant() + Constants.Slash + Application.ProductName.ToLowerInvariant() + Constants.Slash);
             } catch (Exception exception) {
                 Debug.WriteLine(exception);
                 ErrorLog.WriteLine(exception);
@@ -426,19 +423,11 @@ namespace LaunchAsDate {
             settings.SpanValue = (int)numericUpDown1.Value;
             settings.SpanIndex = comboBox2.SelectedIndex;
             settings.Arguments = textBox2.Text;
-            settings.WorkingFolderPath = textBox3.Text;
+            settings.WorkingDirectory = textBox3.Text;
             settings.Interval = (int)numericUpDown2.Value;
             settings.ShortcutName = textBox4.Text;
             settings.OneInstance = checkBox.Checked;
             settings.Save();
         }
-
-        [DllImport("user32.dll", EntryPoint = "mouse_event", SetLastError = true)]
-        private static extern void MouseEvent(uint dwFlags, uint dx, uint dy, uint cButtons, uint dwExtraInfo);
-
-        private const int MOUSEEVENTF_LEFTDOWN = 0x02;
-        private const int MOUSEEVENTF_LEFTUP = 0x04;
-        private const int MOUSEEVENTF_RIGHTDOWN = 0x08;
-        private const int MOUSEEVENTF_RIGHTUP = 0x10;
     }
 }

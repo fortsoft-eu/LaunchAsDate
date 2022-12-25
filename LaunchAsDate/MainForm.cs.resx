@@ -188,9 +188,9 @@
     <value>Vyberte aplikaci, kterou chcete spustit</value>
   </data>
   <data name="checkBox.Size" type="System.Drawing.Size, System.Drawing">
-    <value>236, 17</value>
+    <value>158, 17</value>
   </data>
   <data name="checkBox.Text" xml:space="preserve">
-    <value>Povol&amp;it pouze jednu instanci (experimentální)</value>
+    <value>Povol&amp;it pouze jednu instanci</value>
   </data>
 </root>

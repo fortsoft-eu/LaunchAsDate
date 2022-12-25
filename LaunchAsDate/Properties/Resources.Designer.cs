@@ -602,6 +602,15 @@ namespace LaunchAsDate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Target framework:.
+        /// </summary>
+        internal static string LabelTargetFramework {
+            get {
+                return ResourceManager.GetString("LabelTargetFramework", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Version:.
         /// </summary>
         internal static string LabelVersion {

@@ -7,6 +7,14 @@ using System.Windows.Forms;
 
 namespace LaunchAsDate {
     public partial class ArgumentParserForm : Form {
+        private const int MOUSEEVENTF_LEFTDOWN = 0x02;
+        private const int MOUSEEVENTF_LEFTUP = 0x04;
+        private const int MOUSEEVENTF_RIGHTDOWN = 0x08;
+        private const int MOUSEEVENTF_RIGHTUP = 0x10;
+
+        [DllImport("user32.dll", EntryPoint = "mouse_event", SetLastError = true)]
+        private static extern void MouseEvent(uint dwFlags, uint dx, uint dy, uint cButtons, uint dwExtraInfo);
+
         private int textBoxClicks;
         private Timer textBoxClicksTimer;
         private Point location;
@@ -14,15 +22,19 @@ namespace LaunchAsDate {
         private ArgumentParser argumentParser;
 
         public ArgumentParserForm() {
+            Text = Program.GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Text;
             Icon = Properties.Resources.Icon;
 
-            textBoxClicks = 0;
             textBoxClicksTimer = new Timer();
+            textBoxClicksTimer.Interval = SystemInformation.DoubleClickTime;
+            textBoxClicksTimer.Tick += new EventHandler((sender, e) => {
+                textBoxClicksTimer.Stop();
+                textBoxClicks = 0;
+            });
 
             argumentParser = new ArgumentParser();
 
             InitializeComponent();
-            Text = Program.GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Text;
 
             statusBarPanel = new StatusBarPanel() {
                 BorderStyle = StatusBarPanelBorderStyle.Sunken,
@@ -70,9 +82,7 @@ namespace LaunchAsDate {
                     }
                 }
             })));
-            statusBar.ContextMenu.Popup += new EventHandler((sender, e) => {
-                ((ContextMenu)sender).MenuItems[0].Visible = !string.IsNullOrEmpty(statusBarPanel.Text);
-            });
+            statusBar.ContextMenu.Popup += new EventHandler((sender, e) => ((ContextMenu)sender).MenuItems[0].Visible = !string.IsNullOrEmpty(statusBarPanel.Text));
 
             SubscribeEvents();
 
@@ -82,24 +92,57 @@ namespace LaunchAsDate {
             stringBuilder.Append(" /d 2019-01-01 /a ");
             stringBuilder.Append(ArgumentParser.EscapeArgument(Constants.ExampleApplicationArguments));
             stringBuilder.Append(" /w ");
-            stringBuilder.Append(ArgumentParser.EscapeArgument(Constants.ExampleWorkingFolderPath));
+            stringBuilder.Append(ArgumentParser.EscapeArgument(Constants.ExampleWorkingDirectory));
             stringBuilder.Append(" /o /s 5");
             textBox1.Text = stringBuilder.ToString();
 
             textBoxInput.Text = Constants.ExampleApplicationArguments;
         }
 
-        private void SetValues() {
-            SetTextBoxes();
-            SetCheckBoxes();
+        private void ApplicationIdle(object sender, EventArgs e) {
+            statusBarPanelCapsLock.Text = IsKeyLocked(Keys.CapsLock) ? Properties.Resources.CaptionCapsLock : string.Empty;
+            statusBarPanelNumLock.Text = IsKeyLocked(Keys.NumLock) ? Properties.Resources.CaptionNumLock : string.Empty;
+            statusBarPanelInsert.Text = IsKeyLocked(Keys.Insert) ? Properties.Resources.CaptionOverWrite : Properties.Resources.CaptionInsert;
+            statusBarPanelScrollLock.Text = IsKeyLocked(Keys.Scroll) ? Properties.Resources.CaptionScrollLock : string.Empty;
         }
 
-        private void SetTextBoxes() {
-            textBox2.Text = argumentParser.ApplicationFilePath;
-            textBox3.Text = argumentParser.DateTime.HasValue ? argumentParser.DateTime.Value.ToString("yyyy-MM-dd HH:mm:ss") : null;
-            textBox4.Text = argumentParser.ApplicationArguments;
-            textBox5.Text = argumentParser.WorkingFolderPath;
-            textBox6.Text = argumentParser.Interval.ToString();
+        private void EscapeArgument() => textBoxOutput.Text = ArgumentParser.EscapeArgument(textBoxInput.Text);
+
+        private void KeyDownHandler(object sender, KeyEventArgs e) {
+            if (e.KeyCode == Keys.Escape) {
+                Close();
+            } else if (e.Control && e.KeyCode == Keys.A && sender is TextBox) {
+                ((TextBox)sender).SelectAll();
+            }
+        }
+
+        private void OnArgumentStringChanged(object sender, EventArgs e) {
+            try {
+                argumentParser.ArgumentString = ((TextBox)sender).Text;
+                SetStatusBarPanelText(Properties.Resources.ButtonOK);
+            } catch (Exception exception) {
+                Debug.WriteLine(exception);
+                SetStatusBarPanelText(Properties.Resources.CaptionError + Constants.Colon + Constants.Space + exception.Message);
+            } finally {
+                SetValues();
+            }
+        }
+
+        private void OnCheckedChanged(object sender, EventArgs e) => SetCheckBoxes();
+
+        private void OnFormClosing(object sender, FormClosingEventArgs e) => Application.Idle -= new EventHandler(ApplicationIdle);
+
+        private void OnFormLoad(object sender, EventArgs e) => Application.Idle += new EventHandler(ApplicationIdle);
+
+        private void OnInputStringChanged(object sender, EventArgs e) => EscapeArgument();
+
+        private void OpenHelp(object sender, HelpEventArgs e) {
+            try {
+                Process.Start(Properties.Resources.Website.TrimEnd(Constants.Slash).ToLowerInvariant() + Constants.Slash + Application.ProductName.ToLowerInvariant() + Constants.Slash);
+            } catch (Exception exception) {
+                Debug.WriteLine(exception);
+                ErrorLog.WriteLine(exception);
+            }
         }
 
         private void SetCheckBoxes() {
@@ -120,25 +163,19 @@ namespace LaunchAsDate {
             }
         }
 
-        private void SetStatusBarPanelText(string text) {
-            statusBarPanel.Text = text;
+        private void SetStatusBarPanelText(string text) => statusBarPanel.Text = text;
+
+        private void SetTextBoxes() {
+            textBox2.Text = argumentParser.ApplicationFilePath;
+            textBox3.Text = argumentParser.DateTime.HasValue ? argumentParser.DateTime.Value.ToString(Constants.ISO8601DateTimeFormat) : null;
+            textBox4.Text = argumentParser.ApplicationArguments;
+            textBox5.Text = argumentParser.WorkingDirectory;
+            textBox6.Text = argumentParser.Interval.ToString();
         }
 
-        private void EscapeArgument() {
-            textBoxOutput.Text = ArgumentParser.EscapeArgument(textBoxInput.Text);
-        }
-
-        private static ContextMenu BuildLabelAndCheckBoxContextMenu() {
-            ContextMenu contextMenu = new ContextMenu();
-            contextMenu.MenuItems.Add(new MenuItem(Properties.Resources.MenuItemCopy, new EventHandler((sender, e) => {
-                try {
-                    Clipboard.SetText(((MenuItem)sender).GetContextMenu().SourceControl.Text);
-                } catch (Exception exception) {
-                    Debug.WriteLine(exception);
-                    ErrorLog.WriteLine(exception);
-                }
-            })));
-            return contextMenu;
+        private void SetValues() {
+            SetTextBoxes();
+            SetCheckBoxes();
         }
 
         private void SubscribeEvents() {
@@ -160,22 +197,6 @@ namespace LaunchAsDate {
             textBoxInput.TextChanged += new EventHandler(OnInputStringChanged);
         }
 
-        private void OnArgumentStringChanged(object sender, EventArgs e) {
-            try {
-                argumentParser.ArgumentString = ((TextBox)sender).Text;
-                SetStatusBarPanelText(Properties.Resources.ButtonOK);
-            } catch (Exception exception) {
-                Debug.WriteLine(exception);
-                SetStatusBarPanelText(Properties.Resources.CaptionError + ": " + exception.Message);
-            } finally {
-                SetValues();
-            }
-        }
-
-        private void OnInputStringChanged(object sender, EventArgs e) {
-            EscapeArgument();
-        }
-
         private void TextBoxMouseDown(object sender, MouseEventArgs e) {
             if (e.Button != MouseButtons.Left) {
                 textBoxClicks = 0;
@@ -192,54 +213,37 @@ namespace LaunchAsDate {
             }
             location = e.Location;
             if (textBoxClicks == 3) {
+                textBoxClicks = 0;
+                MouseEvent(MOUSEEVENTF_LEFTUP, Convert.ToUInt32(Cursor.Position.X), Convert.ToUInt32(Cursor.Position.Y), 0, 0);
                 if (textBox.Multiline) {
-                    int selectionEnd = Math.Max(textBox.SelectionStart + textBox.SelectionLength, Math.Min(textBox.Text.IndexOf('\r', textBox.SelectionStart), textBox.Text.IndexOf('\n', textBox.SelectionStart)));
+                    int selectionEnd = Math.Min(textBox.Text.IndexOf(Constants.CarriageReturn, textBox.SelectionStart), textBox.Text.IndexOf(Constants.LineFeed, textBox.SelectionStart));
+                    if (selectionEnd < 0) {
+                        selectionEnd = textBox.TextLength;
+                    }
+                    selectionEnd = Math.Max(textBox.SelectionStart + textBox.SelectionLength, selectionEnd);
                     int selectionStart = Math.Min(textBox.SelectionStart, selectionEnd);
-                    do {
-                        selectionStart--;
-                    } while (selectionStart > 0 && textBox.Text[selectionStart] != '\n' && textBox.Text[selectionStart] != '\r');
+                    while (--selectionStart > 0 && textBox.Text[selectionStart] != Constants.LineFeed && textBox.Text[selectionStart] != Constants.CarriageReturn) { }
                     textBox.Select(selectionStart, selectionEnd - selectionStart);
                 } else {
                     textBox.SelectAll();
                 }
-                textBoxClicks = 0;
-                MouseEvent(MOUSEEVENTF_LEFTUP, Convert.ToUInt32(Cursor.Position.X), Convert.ToUInt32(Cursor.Position.X), 0, 0);
                 textBox.Focus();
             } else {
-                textBoxClicksTimer.Interval = SystemInformation.DoubleClickTime;
                 textBoxClicksTimer.Start();
-                textBoxClicksTimer.Tick += new EventHandler((s, t) => {
-                    textBoxClicksTimer.Stop();
-                    textBoxClicks = 0;
-                });
             }
         }
 
-        private void KeyDownHandler(object sender, KeyEventArgs e) {
-            if (e.KeyCode == Keys.Escape) {
-                Close();
-            } else if (e.Control && e.KeyCode == Keys.A && sender is TextBox) {
-                ((TextBox)sender).SelectAll();
-            }
-        }
-
-        private void OnCheckedChanged(object sender, EventArgs e) {
-            SetCheckBoxes();
-        }
-
-        private void OnFormLoad(object sender, EventArgs e) {
-            Application.Idle += new EventHandler(ApplicationIdle);
-        }
-
-        private void OnFormClosing(object sender, FormClosingEventArgs e) {
-            Application.Idle -= new EventHandler(ApplicationIdle);
-        }
-
-        private void ApplicationIdle(object sender, EventArgs e) {
-            statusBarPanelCapsLock.Text = IsKeyLocked(Keys.CapsLock) ? Properties.Resources.CaptionCapsLock : string.Empty;
-            statusBarPanelNumLock.Text = IsKeyLocked(Keys.NumLock) ? Properties.Resources.CaptionNumLock : string.Empty;
-            statusBarPanelInsert.Text = IsKeyLocked(Keys.Insert) ? Properties.Resources.CaptionOverWrite : Properties.Resources.CaptionInsert;
-            statusBarPanelScrollLock.Text = IsKeyLocked(Keys.Scroll) ? Properties.Resources.CaptionScrollLock : string.Empty;
+        private static ContextMenu BuildLabelAndCheckBoxContextMenu() {
+            ContextMenu contextMenu = new ContextMenu();
+            contextMenu.MenuItems.Add(new MenuItem(Properties.Resources.MenuItemCopy, new EventHandler((sender, e) => {
+                try {
+                    Clipboard.SetText(((MenuItem)sender).GetContextMenu().SourceControl.Text);
+                } catch (Exception exception) {
+                    Debug.WriteLine(exception);
+                    ErrorLog.WriteLine(exception);
+                }
+            })));
+            return contextMenu;
         }
 
         private static void TextBoxKeyPress(object sender, KeyPressEventArgs e) {
@@ -253,22 +257,5 @@ namespace LaunchAsDate {
                 textBox.SelectionStart = selectionStart + 1;
             }
         }
-
-        private void OpenHelp(object sender, HelpEventArgs e) {
-            try {
-                Process.Start(Properties.Resources.Website.TrimEnd('/').ToLowerInvariant() + '/' + Application.ProductName.ToLowerInvariant() + '/');
-            } catch (Exception exception) {
-                Debug.WriteLine(exception);
-                ErrorLog.WriteLine(exception);
-            }
-        }
-
-        [DllImport("user32.dll", EntryPoint = "mouse_event", SetLastError = true)]
-        private static extern void MouseEvent(uint dwFlags, uint dx, uint dy, uint cButtons, uint dwExtraInfo);
-
-        private const int MOUSEEVENTF_LEFTDOWN = 0x02;
-        private const int MOUSEEVENTF_LEFTUP = 0x04;
-        private const int MOUSEEVENTF_RIGHTDOWN = 0x08;
-        private const int MOUSEEVENTF_RIGHTUP = 0x10;
     }
 }

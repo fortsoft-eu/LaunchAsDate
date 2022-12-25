@@ -13,6 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -25,7 +26,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -52,7 +52,7 @@
     <StartupObject>LaunchAsDate.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>Icon.ico</ApplicationIcon>
+    <ApplicationIcon>Resources\Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -79,7 +79,6 @@
     </Compile>
     <Compile Include="Constants.cs" />
     <Compile Include="ErrorLog.cs" />
-    <Compile Include="FocusApplication.cs" />
     <Compile Include="LauncherAsDate.cs" />
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
@@ -100,7 +99,7 @@
     <Compile Include="ProgramShortcut.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Settings.cs" />
-    <Compile Include="SingleMainForm.cs" />
+    <Compile Include="SingleInstance.cs" />
     <Compile Include="TestForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -157,7 +156,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Icon.ico" />
+    <None Include="Resources\Icon.ico" />
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="IWshRuntimeLibrary">
@@ -183,23 +182,24 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <None Include="OK.ico" />
+    <None Include="Resources\OK.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ShieldError.ico" />
+    <None Include="Resources\ShieldError.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ShieldWarning.ico" />
+    <None Include="Resources\ShieldWarning.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ShieldOK.ico" />
+    <None Include="Resources\ShieldOK.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ShieldQuestion.ico" />
+    <None Include="Resources\ShieldQuestion.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="ShieldQuestionRed.ico" />
+    <None Include="Resources\ShieldQuestionRed.ico" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

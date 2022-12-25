@@ -131,7 +131,7 @@
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(98, 13);
             this.label5.TabIndex = 8;
-            this.label5.Text = "WorkingFolderPath";
+            this.label5.Text = "WorkingDirectory";
             // 
             // textBox5
             // 

@@ -1,4 +1,30 @@
-﻿using System;
+﻿/**
+ * This library is open source software licensed under terms of the MIT License.
+ *
+ * Copyright (c) 2020-2022 Petr Červinka - FortSoft <cervinka@fortsoft.eu>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ **
+ * Version 1.0.0.1
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -8,10 +34,30 @@ using System.Text;
 using System.Windows.Forms;
 
 namespace LaunchAsDate {
+
+    /// <summary>
+    /// Own extended alternative to MessageBox.
+    /// </summary>
     public partial class MessageForm : Form {
+
+        /// <summary>
+        /// Constants
+        /// </summary>
         private const int SC_CLOSE = 0xF060;
         public const int defaultWidth = 420;
 
+        /// <summary>
+        /// Imports
+        /// </summary>
+        [DllImport("user32.dll")]
+        private static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
+
+        [DllImport("user32.dll")]
+        private static extern bool EnableMenuItem(IntPtr hMenu, uint itemId, uint uEnable);
+
+        /// <summary>
+        /// Fields
+        /// </summary>
         private Form parent;
         private string text, caption;
         private Buttons buttons;
@@ -21,6 +67,9 @@ namespace LaunchAsDate {
         private bool noWrap;
         private ClickedButton clickedButton;
 
+        /// <summary>
+        /// Constructor overloads.
+        /// </summary>
         public MessageForm(string text) : this(null, text, null, Buttons.OK, BoxIcon.None, DefaultButton.Button1, false, false, 0, false) { }
 
         public MessageForm(Form parent, string text) : this(parent, text, null, Buttons.OK, BoxIcon.None, DefaultButton.Button1, false, false, 0, false) { }
@@ -55,6 +104,9 @@ namespace LaunchAsDate {
 
         public MessageForm(string text, string caption, Buttons buttons, BoxIcon icon, DefaultButton defaultButton, bool centerScreen, bool displayHelpButton, int maxWidth, bool noWrap) : this(null, text, caption, buttons, icon, defaultButton, centerScreen, displayHelpButton, maxWidth, noWrap) { }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MessageForm"/> class.
+        /// </summary>
         public MessageForm(Form parent, string text, string caption, Buttons buttons, BoxIcon icon, DefaultButton defaultButton, bool centerScreen, bool displayHelpButton, int maxWidth, bool noWrap) {
             this.parent = parent;
             this.text = text;
@@ -89,13 +141,14 @@ namespace LaunchAsDate {
             List<string> lines = new List<string>();
             StringReader stringReader = new StringReader(text);
             for (string line; (line = stringReader.ReadLine()) != null;) {
-                string[] words = line.Split(' ');
+                string[] words = line.Split(Constants.Space);
                 StringBuilder stringBuilder = new StringBuilder();
                 foreach (string word in words) {
                     if (stringBuilder.Length == 0) {
                         stringBuilder.Append(word);
                     } else if (TextRenderer.MeasureText(stringBuilder.ToString() + Constants.Space + word, label.Font).Width <= (icon == BoxIcon.None ? maxWidth : maxWidth - 50) || noWrap) {
-                        stringBuilder.Append(Constants.Space + word);
+                        stringBuilder.Append(Constants.Space);
+                        stringBuilder.Append(word);
                     } else {
                         lines.Add(stringBuilder.ToString());
                         stringBuilder = new StringBuilder();
@@ -218,12 +271,8 @@ namespace LaunchAsDate {
                     button3.DialogResult = DialogResult.No;
                     button4.DialogResult = DialogResult.Cancel;
                     CancelButton = button4;
-                    button1.Click += new EventHandler((sender, e) => {
-                        clickedButton = ClickedButton.Button1;
-                    });
-                    button2.Click += new EventHandler((sender, e) => {
-                        clickedButton = ClickedButton.Button2;
-                    });
+                    button1.Click += new EventHandler((sender, e) => clickedButton = ClickedButton.Button1);
+                    button2.Click += new EventHandler((sender, e) => clickedButton = ClickedButton.Button2);
                     FormClosed += new FormClosedEventHandler((sender, e) => {
                         if (DialogResult == DialogResult.No) {
                             clickedButton = ClickedButton.Button3;
@@ -243,12 +292,8 @@ namespace LaunchAsDate {
                     button3.DialogResult = DialogResult.No;
                     button4.DialogResult = DialogResult.Cancel;
                     CancelButton = button4;
-                    button1.Click += new EventHandler((sender, e) => {
-                        clickedButton = ClickedButton.Button1;
-                    });
-                    button2.Click += new EventHandler((sender, e) => {
-                        clickedButton = ClickedButton.Button2;
-                    });
+                    button1.Click += new EventHandler((sender, e) => clickedButton = ClickedButton.Button1);
+                    button2.Click += new EventHandler((sender, e) => clickedButton = ClickedButton.Button2);
                     FormClosed += new FormClosedEventHandler((sender, e) => {
                         if (DialogResult == DialogResult.No) {
                             clickedButton = ClickedButton.Button3;
@@ -268,18 +313,10 @@ namespace LaunchAsDate {
                     button3.DialogResult = DialogResult.No;
                     button4.DialogResult = DialogResult.No;
                     DisableCloseButton();
-                    button1.Click += new EventHandler((sender, e) => {
-                        clickedButton = ClickedButton.Button1;
-                    });
-                    button2.Click += new EventHandler((sender, e) => {
-                        clickedButton = ClickedButton.Button2;
-                    });
-                    button3.Click += new EventHandler((sender, e) => {
-                        clickedButton = ClickedButton.Button3;
-                    });
-                    button4.Click += new EventHandler((sender, e) => {
-                        clickedButton = ClickedButton.Button4;
-                    });
+                    button1.Click += new EventHandler((sender, e) => clickedButton = ClickedButton.Button1);
+                    button2.Click += new EventHandler((sender, e) => clickedButton = ClickedButton.Button2);
+                    button3.Click += new EventHandler((sender, e) => clickedButton = ClickedButton.Button3);
+                    button4.Click += new EventHandler((sender, e) => clickedButton = ClickedButton.Button4);
                     break;
                 default:
                     MinimumSize = new Size(146, 136);
@@ -433,11 +470,5 @@ namespace LaunchAsDate {
         public enum ClickedButton {
             Button1, Button2, Button3, Button4
         }
-
-        [DllImport("user32.dll")]
-        private static extern IntPtr GetSystemMenu(IntPtr hWnd, bool bRevert);
-
-        [DllImport("user32.dll")]
-        private static extern bool EnableMenuItem(IntPtr hMenu, uint itemId, uint uEnable);
     }
 }

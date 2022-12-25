@@ -1,6 +1,6 @@
-MIT License
+Released under MIT License.
 
-Copyright (c) 2020-2021 Petr Červinka - FortSoft <cervinka@fortsoft.eu>
+Copyright (c) 2020-2022 Petr Červinka - FortSoft <cervinka@fortsoft.eu>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

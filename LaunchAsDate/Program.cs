@@ -76,7 +76,7 @@ namespace LaunchAsDate {
                             ApplicationFilePath = argumentParser.ApplicationFilePath,
                             DateTime = argumentParser.DateTime.Value,
                             Arguments = argumentParser.ApplicationArguments,
-                            WorkingFolderPath = argumentParser.WorkingFolderPath,
+                            WorkingDirectory = argumentParser.WorkingDirectory,
                             OneInstance = argumentParser.OneInstance,
                             Interval = argumentParser.Interval,
                             DisableTimeCorrection = settings.DisableTimeCorrection,
@@ -91,7 +91,7 @@ namespace LaunchAsDate {
                 }
             } else {
                 try {
-                    SingleMainForm.Run(new MainForm(settings));
+                    SingleInstance.Run(new MainForm(settings), GetTitle());
                 } catch (Exception exception) {
                     Debug.WriteLine(exception);
                     ErrorLog.WriteLine(exception);

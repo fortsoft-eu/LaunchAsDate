@@ -6,28 +6,37 @@ using System.Windows.Forms;
 
 namespace LaunchAsDate {
     public partial class TestForm : Form {
+        private const int MOUSEEVENTF_LEFTDOWN = 0x02;
+        private const int MOUSEEVENTF_LEFTUP = 0x04;
+        private const int MOUSEEVENTF_RIGHTDOWN = 0x08;
+        private const int MOUSEEVENTF_RIGHTUP = 0x10;
+
+        [DllImport("user32.dll", EntryPoint = "mouse_event", SetLastError = true)]
+        private static extern void MouseEvent(uint dwFlags, uint dx, uint dy, uint cButtons, uint dwExtraInfo);
+
         private int textBoxClicks;
-        private Timer textBoxClicksTimer, timer;
         private Point location;
+        private Timer textBoxClicksTimer, timer;
 
         public TestForm(string[] args) {
-            textBoxClicks = 0;
-            textBoxClicksTimer = new Timer();
-
-            timer = new Timer();
-            timer.Interval = 1000;
-            timer.Tick += new EventHandler(Tick);
-
-            InitializeComponent();
             Icon = Properties.Resources.Icon;
             Text = Program.GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Text;
 
-            textBox.Text = string.Join(Constants.Space, args);
-            timer.Start();
-        }
+            textBoxClicksTimer = new Timer();
+            textBoxClicksTimer.Interval = SystemInformation.DoubleClickTime;
+            textBoxClicksTimer.Tick += new EventHandler((sender, e) => {
+                textBoxClicksTimer.Stop();
+                textBoxClicks = 0;
+            });
 
-        private void Tick(object sender, EventArgs e) {
-            dateTimePicker2.Value = DateTime.Now;
+            timer = new Timer();
+            timer.Interval = 1000;
+            timer.Tick += new EventHandler((sender, e) => dateTimePickerCurrentDate.Value = DateTime.Now);
+
+            InitializeComponent();
+
+            textBoxArguments.Text = string.Join(Constants.Space.ToString(), args);
+            timer.Start();
         }
 
         private void Close(object sender, EventArgs e) {
@@ -50,26 +59,23 @@ namespace LaunchAsDate {
             }
             location = e.Location;
             if (textBoxClicks == 3) {
+                textBoxClicks = 0;
+                MouseEvent(MOUSEEVENTF_LEFTUP, Convert.ToUInt32(Cursor.Position.X), Convert.ToUInt32(Cursor.Position.Y), 0, 0);
                 if (textBox.Multiline) {
-                    int selectionEnd = Math.Max(textBox.SelectionStart + textBox.SelectionLength, Math.Min(textBox.Text.IndexOf('\r', textBox.SelectionStart), textBox.Text.IndexOf('\n', textBox.SelectionStart)));
+                    int selectionEnd = Math.Min(textBox.Text.IndexOf(Constants.CarriageReturn, textBox.SelectionStart), textBox.Text.IndexOf(Constants.LineFeed, textBox.SelectionStart));
+                    if (selectionEnd < 0) {
+                        selectionEnd = textBox.TextLength;
+                    }
+                    selectionEnd = Math.Max(textBox.SelectionStart + textBox.SelectionLength, selectionEnd);
                     int selectionStart = Math.Min(textBox.SelectionStart, selectionEnd);
-                    do {
-                        selectionStart--;
-                    } while (selectionStart > 0 && textBox.Text[selectionStart] != '\n' && textBox.Text[selectionStart] != '\r');
+                    while (--selectionStart > 0 && textBox.Text[selectionStart] != Constants.LineFeed && textBox.Text[selectionStart] != Constants.CarriageReturn) { }
                     textBox.Select(selectionStart, selectionEnd - selectionStart);
                 } else {
                     textBox.SelectAll();
                 }
-                textBoxClicks = 0;
-                MouseEvent(MOUSEEVENTF_LEFTUP, Convert.ToUInt32(Cursor.Position.X), Convert.ToUInt32(Cursor.Position.X), 0, 0);
                 textBox.Focus();
             } else {
-                textBoxClicksTimer.Interval = SystemInformation.DoubleClickTime;
                 textBoxClicksTimer.Start();
-                textBoxClicksTimer.Tick += new EventHandler((s, t) => {
-                    textBoxClicksTimer.Stop();
-                    textBoxClicks = 0;
-                });
             }
         }
 
@@ -82,19 +88,11 @@ namespace LaunchAsDate {
 
         private void OpenHelp(object sender, HelpEventArgs e) {
             try {
-                Process.Start(Properties.Resources.Website.TrimEnd('/').ToLowerInvariant() + '/' + Application.ProductName.ToLowerInvariant() + '/');
+                Process.Start(Properties.Resources.Website.TrimEnd(Constants.Slash).ToLowerInvariant() + Constants.Slash + Application.ProductName.ToLowerInvariant() + Constants.Slash);
             } catch (Exception exception) {
                 Debug.WriteLine(exception);
                 ErrorLog.WriteLine(exception);
             }
         }
-
-        [DllImport("user32.dll", EntryPoint = "mouse_event", SetLastError = true)]
-        private static extern void MouseEvent(uint dwFlags, uint dx, uint dy, uint cButtons, uint dwExtraInfo);
-
-        private const int MOUSEEVENTF_LEFTDOWN = 0x02;
-        private const int MOUSEEVENTF_LEFTUP = 0x04;
-        private const int MOUSEEVENTF_RIGHTDOWN = 0x08;
-        private const int MOUSEEVENTF_RIGHTUP = 0x10;
     }
 }

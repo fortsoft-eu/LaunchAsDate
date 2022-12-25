@@ -8,28 +8,67 @@ using System.Windows.Forms;
 
 namespace LaunchAsDate {
     public class LauncherAsDate {
-        private string timeZoneInformationKey, applicationFilePath, arguments, workingFolderPath, mutexId;
-        private bool oneInstance, disableTimeCorrection, forceTimeCorrection;
-        private int interval;
-        private Mutex mutex;
-        private Process process;
-        private DateTime dateTime, currentDateTime;
-
         [DllImport("kernel32.dll", EntryPoint = "GetSystemTime", SetLastError = true)]
         private static extern void GetSystemTime(ref SystemTime sysTime);
 
         [DllImport("kernel32.dll", EntryPoint = "SetSystemTime", SetLastError = true)]
         private static extern bool SetSystemTime(ref SystemTime sysTime);
 
+        private string mutexId;
+        private Mutex mutex;
+        private Process process;
+        private DateTime currentDateTime;
+
         public LauncherAsDate() {
-            timeZoneInformationKey = @"SYSTEM\CurrentControlSet\Control\TimeZoneInformation";
-            mutexId = Path.Combine("Local", Application.CompanyName + "_" + Application.ProductName);
+            mutexId = Path.Combine(Constants.MutexLocal, Application.CompanyName + Constants.Underscore + Application.ProductName);
             process = new Process();
         }
 
+        public bool DisableTimeCorrection { get; set; }
+
+        public bool ForceTimeCorrection { get; set; }
+
+        public bool OneInstance { get; set; }
+
+        public DateTime DateTime { get; set; }
+
+        public int Interval { get; set; }
+
+        public string ApplicationFilePath { get; set; }
+
+        public string Arguments { get; set; }
+
+        public string WorkingDirectory { get; set; }
+
+        private bool IsDynamicDaylightTimeDisabled() {
+            RegistryKey registryKey = null;
+            int value = 0;
+            try {
+                registryKey = Registry.LocalMachine.OpenSubKey(Constants.RegPathTimeZoneInformationKey);
+                value = (int)registryKey.GetValue(Constants.RegValDynamicDaylightTimeDisabled, 0);
+            } catch (Exception exception) {
+                Debug.WriteLine(exception);
+                ErrorLog.WriteLine(exception);
+            }
+            return value != 0;
+        }
+
+        private bool IsRealTimeUniversal() {
+            RegistryKey registryKey = null;
+            int value = 0;
+            try {
+                registryKey = Registry.LocalMachine.OpenSubKey(Constants.RegPathTimeZoneInformationKey);
+                value = (int)registryKey.GetValue(Constants.RegValRealTimeIsUniversal, 0);
+            } catch (Exception exception) {
+                Debug.WriteLine(exception);
+                ErrorLog.WriteLine(exception);
+            }
+            return value != 0;
+        }
+
         public void Launch() {
-            if (oneInstance) {
-                if (FocusApplication.SwitchToRunningInstance(applicationFilePath)) {
+            if (OneInstance) {
+                if (SingleInstance.FocusRunning(ApplicationFilePath)) {
                     return;
                 }
             }
@@ -38,19 +77,19 @@ namespace LaunchAsDate {
             if (!createdNew) {
                 return;
             }
-            process.StartInfo.FileName = applicationFilePath;
-            process.StartInfo.Arguments = arguments;
-            process.StartInfo.WorkingDirectory = workingFolderPath;
-            currentDateTime = GetSystemTime().AddSeconds(interval);
-            if (!disableTimeCorrection) {
-                if (forceTimeCorrection || !IsRealTimeUniversal() && !IsDynamicDaylightTimeDisabled()) {
-                    dateTime = dateTime.Add(TimeZone.CurrentTimeZone.GetUtcOffset(currentDateTime)).Subtract(TimeZone.CurrentTimeZone.GetUtcOffset(dateTime));
+            process.StartInfo.FileName = ApplicationFilePath;
+            process.StartInfo.Arguments = Arguments;
+            process.StartInfo.WorkingDirectory = WorkingDirectory;
+            currentDateTime = GetSystemTime().AddSeconds(Interval);
+            if (!DisableTimeCorrection) {
+                if (ForceTimeCorrection || !IsRealTimeUniversal() && !IsDynamicDaylightTimeDisabled()) {
+                    DateTime = DateTime.Add(TimeZone.CurrentTimeZone.GetUtcOffset(currentDateTime)).Subtract(TimeZone.CurrentTimeZone.GetUtcOffset(DateTime));
                 }
             }
-            if (currentDateTime.Year != dateTime.Year || currentDateTime.Month != dateTime.Month || currentDateTime.Day != dateTime.Day) {
-                SetSystemTime(dateTime);
+            if (currentDateTime.Year != DateTime.Year || currentDateTime.Month != DateTime.Month || currentDateTime.Day != DateTime.Day) {
+                SetSystemTime(DateTime);
                 process.Start();
-                Thread.Sleep(interval * 1000);
+                Thread.Sleep(Interval * 1000);
                 SetSystemTime(currentDateTime);
             } else {
                 process.Start();
@@ -73,104 +112,6 @@ namespace LaunchAsDate {
                 Second = (ushort)dateTime.Second
             };
             SetSystemTime(ref systemTime);
-        }
-
-        public string ApplicationFilePath {
-            get {
-                return applicationFilePath;
-            }
-            set {
-                applicationFilePath = value;
-            }
-        }
-
-        public DateTime DateTime {
-            get {
-                return dateTime;
-            }
-            set {
-                dateTime = value;
-            }
-        }
-
-        public string Arguments {
-            get {
-                return arguments;
-            }
-            set {
-                arguments = value;
-            }
-        }
-
-        public string WorkingFolderPath {
-            get {
-                return workingFolderPath;
-            }
-            set {
-                workingFolderPath = value;
-            }
-        }
-
-        public bool OneInstance {
-            get {
-                return oneInstance;
-            }
-            set {
-                oneInstance = value;
-            }
-        }
-
-        public int Interval {
-            get {
-                return interval;
-            }
-            set {
-                interval = value;
-            }
-        }
-
-        public bool DisableTimeCorrection {
-            get {
-                return disableTimeCorrection;
-            }
-            set {
-                disableTimeCorrection = value;
-            }
-        }
-
-        public bool ForceTimeCorrection {
-            get {
-                return forceTimeCorrection;
-            }
-            set {
-                forceTimeCorrection = value;
-            }
-        }
-
-        private bool IsRealTimeUniversal() {
-            RegistryKey registryKey = null;
-            int value = 0;
-            try {
-                registryKey = Registry.LocalMachine.OpenSubKey(timeZoneInformationKey);
-                value = (int)registryKey.GetValue("RealTimeIsUniversal", 0);
-            } catch (Exception exception) {
-                Debug.WriteLine(exception);
-                ErrorLog.WriteLine(exception);
-            }
-            return value != 0;
-        }
-
-        private bool IsDynamicDaylightTimeDisabled() {
-            RegistryKey registryKey = null;
-            int value = 0;
-            try {
-                registryKey = Registry.LocalMachine.OpenSubKey(timeZoneInformationKey);
-                value = (int)registryKey.GetValue("DynamicDaylightTimeDisabled", 0);
-            } catch (Exception exception) {
-                Debug.WriteLine(exception);
-                ErrorLog.WriteLine(exception);
-            }
-            return value != 0;
         }
 
         private struct SystemTime {

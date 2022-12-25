@@ -6,41 +6,76 @@ using System.Text.RegularExpressions;
 namespace LaunchAsDate {
     public class ArgumentParser {
         private List<string> arguments;
-        private string argumentString, applicationFilePath, applicationArguments, workingFolderPath;
+        private string argumentString, applicationFilePath, applicationArguments, workingDirectory;
         private int interval;
         private DateTime? dateTime;
-        private bool expectingFilePath, expectingDate, expectingSpan, expectingArguments, expectingInterval, expectingFolderPath, filePathSet, dateSet, spanSet, argumentsSet, intervalSet, folderPathSet, testSet, helpSet, hasArguments, oneInstanceSet, thisTestSet;
+        private bool expectingFilePath, expectingDate, expectingSpan, expectingArguments, expectingInterval, expectingFolderPath, filePathSet;
+        private bool dateSet, spanSet, argumentsSet, intervalSet, folderPathSet, testSet, helpSet, hasArguments, oneInstanceSet, thisTestSet;
         private Regex spanRegex;
 
         public ArgumentParser() {
-            spanRegex = new Regex(@"^([-+])(\d+)(day|days|month|months|year|years)$", RegexOptions.IgnoreCase);
+            spanRegex = new Regex("^([-+])(\\d+)(" + Constants.EnglishDay + Constants.VerticalBar + Constants.EnglishDays + Constants.VerticalBar
+                + Constants.EnglishMonth + Constants.VerticalBar + Constants.EnglishMonths + Constants.VerticalBar + Constants.EnglishYear
+                + Constants.VerticalBar + Constants.EnglishYears + ")$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
             Reset();
         }
 
-        private void Reset() {
-            applicationFilePath = string.Empty;
-            applicationArguments = string.Empty;
-            workingFolderPath = string.Empty;
-            interval = 0;
-            dateTime = null;
-            expectingFilePath = false;
-            expectingDate = false;
-            expectingSpan = false;
-            expectingArguments = false;
-            expectingInterval = false;
-            expectingFolderPath = false;
-            filePathSet = false;
-            dateSet = false;
-            spanSet = false;
-            argumentsSet = false;
-            intervalSet = false;
-            folderPathSet = false;
-            testSet = false;
-            helpSet = false;
-            hasArguments = false;
-            oneInstanceSet = false;
-            thisTestSet = false;
+        public bool HasArguments => hasArguments;
+
+        public bool IsHelp => helpSet;
+
+        public bool IsTest => testSet;
+
+        public bool IsThisTest => thisTestSet;
+
+        public bool OneInstance => oneInstanceSet;
+
+        public DateTime? DateTime => dateTime;
+
+        public int Interval => interval;
+
+        public string ApplicationArguments => applicationArguments;
+
+        public string ApplicationFilePath => applicationFilePath;
+
+        public string[] Arguments {
+            get {
+                return arguments.ToArray();
+            }
+            set {
+                Reset();
+                arguments = new List<string>(value.Length);
+                arguments.AddRange(value);
+                try {
+                    Evaluate();
+                } catch (Exception exception) {
+                    Reset();
+                    throw exception;
+                }
+            }
         }
+
+        public string ArgumentString {
+            get {
+                if (string.IsNullOrEmpty(argumentString) && arguments.Count > 0) {
+                    return string.Join(Constants.Space.ToString(), arguments);
+                }
+                return argumentString;
+            }
+            set {
+                Reset();
+                argumentString = value;
+                arguments = Parse(argumentString);
+                try {
+                    Evaluate();
+                } catch (Exception exception) {
+                    Reset();
+                    throw exception;
+                }
+            }
+        }
+
+        public string WorkingDirectory => workingDirectory;
 
         private void Evaluate() {
             DateTime systemDateTime = LauncherAsDate.GetSystemTime();
@@ -143,12 +178,12 @@ namespace LaunchAsDate {
                     if (int.Parse(span[2]) == 0) {
                         throw new ApplicationException(Properties.Resources.ExceptionMessageZ);
                     }
-                    if (span[3].Equals("year", StringComparison.OrdinalIgnoreCase) || span[3].Equals("years", StringComparison.OrdinalIgnoreCase)) {
-                        dateTime = systemDateTime.AddYears(span[1] == "-" ? 0 - int.Parse(span[2]) : int.Parse(span[2]));
-                    } else if (span[3].Equals("month", StringComparison.OrdinalIgnoreCase) || span[3].Equals("months", StringComparison.OrdinalIgnoreCase)) {
-                        dateTime = systemDateTime.AddMonths(span[1] == "-" ? 0 - int.Parse(span[2]) : int.Parse(span[2]));
+                    if (span[3].Equals(Constants.EnglishYear, StringComparison.OrdinalIgnoreCase) || span[3].Equals(Constants.EnglishYears, StringComparison.OrdinalIgnoreCase)) {
+                        dateTime = systemDateTime.AddYears(span[1].Equals(Constants.Hyphen.ToString()) ? 0 - int.Parse(span[2]) : int.Parse(span[2]));
+                    } else if (span[3].Equals(Constants.EnglishMonth, StringComparison.OrdinalIgnoreCase) || span[3].Equals(Constants.EnglishMonth, StringComparison.OrdinalIgnoreCase)) {
+                        dateTime = systemDateTime.AddMonths(span[1].Equals(Constants.Hyphen.ToString()) ? 0 - int.Parse(span[2]) : int.Parse(span[2]));
                     } else {
-                        dateTime = systemDateTime.AddDays(span[1] == "-" ? 0 - double.Parse(span[2]) : double.Parse(span[2]));
+                        dateTime = systemDateTime.AddDays(span[1].Equals(Constants.Hyphen.ToString()) ? 0 - double.Parse(span[2]) : double.Parse(span[2]));
                     }
                     expectingSpan = false;
                     spanSet = true;
@@ -157,7 +192,7 @@ namespace LaunchAsDate {
                     expectingArguments = false;
                     argumentsSet = true;
                 } else if (expectingFolderPath) {
-                    workingFolderPath = argument;
+                    workingDirectory = argument;
                     expectingFolderPath = false;
                     folderPathSet = true;
                 } else if (expectingInterval) {
@@ -167,7 +202,7 @@ namespace LaunchAsDate {
                     }
                     expectingInterval = false;
                     intervalSet = true;
-                } else if (argument.StartsWith("-") || argument.StartsWith("/")) {
+                } else if (argument.StartsWith(Constants.Hyphen.ToString()) || argument.StartsWith(Constants.Slash.ToString())) {
                     throw new ApplicationException(Properties.Resources.ExceptionMessageU);
                 } else {
                     throw new ApplicationException(Properties.Resources.ExceptionMessageM);
@@ -189,118 +224,46 @@ namespace LaunchAsDate {
             }
         }
 
+        private void Reset() {
+            applicationFilePath = string.Empty;
+            applicationArguments = string.Empty;
+            workingDirectory = string.Empty;
+            interval = 0;
+            dateTime = null;
+            expectingFilePath = false;
+            expectingDate = false;
+            expectingSpan = false;
+            expectingArguments = false;
+            expectingInterval = false;
+            expectingFolderPath = false;
+            filePathSet = false;
+            dateSet = false;
+            spanSet = false;
+            argumentsSet = false;
+            intervalSet = false;
+            folderPathSet = false;
+            testSet = false;
+            helpSet = false;
+            hasArguments = false;
+            oneInstanceSet = false;
+            thisTestSet = false;
+        }
+
         public static string EscapeArgument(string argument) {
             argument = Regex.Replace(argument, @"(\\*)" + "\"", @"$1$1\" + "\"");
             return "\"" + Regex.Replace(argument, @"(\\+)$", @"$1$1") + "\"";
         }
 
-        public bool HasArguments {
-            get {
-                return hasArguments;
-            }
-        }
-
-        public bool OneInstance {
-            get {
-                return oneInstanceSet;
-            }
-        }
-
-        public bool IsTest {
-            get {
-                return testSet;
-            }
-        }
-
-        public bool IsHelp {
-            get {
-                return helpSet;
-            }
-        }
-
-        public bool IsThisTest {
-            get {
-                return thisTestSet;
-            }
-        }
-
-        public string ApplicationFilePath {
-            get {
-                return applicationFilePath;
-            }
-        }
-
-        public string WorkingFolderPath {
-            get {
-                return workingFolderPath;
-            }
-        }
-
-        public int Interval {
-            get {
-                return interval;
-            }
-        }
-
-        public DateTime? DateTime {
-            get {
-                return dateTime;
-            }
-        }
-
-        public string ApplicationArguments {
-            get {
-                return applicationArguments;
-            }
-        }
-
-        public string[] Arguments {
-            get {
-                return arguments.ToArray();
-            }
-            set {
-                Reset();
-                arguments = new List<string>(value.Length);
-                arguments.AddRange(value);
-                try {
-                    Evaluate();
-                } catch (Exception exception) {
-                    Reset();
-                    throw exception;
-                }
-            }
-        }
-
-        public string ArgumentString {
-            get {
-                if (string.IsNullOrEmpty(argumentString) && arguments.Count > 0) {
-                    return string.Join(Constants.Space, arguments);
-                }
-                return argumentString;
-            }
-            set {
-                Reset();
-                argumentString = value;
-                arguments = Parse(argumentString);
-                try {
-                    Evaluate();
-                } catch (Exception exception) {
-                    Reset();
-                    throw exception;
-                }
-            }
-        }
-
         private static List<string> Parse(string str) {
             List<string> arguments = new List<string>();
-            StringBuilder c = new StringBuilder();
+            StringBuilder stringBuilder = new StringBuilder();
             bool e = false, d = false, s = false;
             for (int i = 0; i < str.Length; i++) {
                 if (!s) {
-                    if (str[i] == ' ') {
+                    if (str[i] == Constants.Space) {
                         continue;
                     }
-                    d = str[i] == '"';
+                    d = str[i] == Constants.QuotationMark;
                     s = true;
                     e = false;
                     if (d) {
@@ -308,34 +271,34 @@ namespace LaunchAsDate {
                     }
                 }
                 if (d) {
-                    if (str[i] == '\\') {
-                        if (i + 1 < str.Length && str[i + 1] == '"') {
-                            c.Append(str[++i]);
+                    if (str[i] == Constants.BackSlash) {
+                        if (i + 1 < str.Length && str[i + 1] == Constants.QuotationMark) {
+                            stringBuilder.Append(str[++i]);
                         } else {
-                            c.Append(str[i]);
+                            stringBuilder.Append(str[i]);
                         }
-                    } else if (str[i] == '"') {
-                        if (i + 1 < str.Length && str[i + 1] == '"') {
-                            c.Append(str[++i]);
+                    } else if (str[i] == Constants.QuotationMark) {
+                        if (i + 1 < str.Length && str[i + 1] == Constants.QuotationMark) {
+                            stringBuilder.Append(str[++i]);
                         } else {
                             d = false;
                             e = true;
                         }
                     } else {
-                        c.Append(str[i]);
+                        stringBuilder.Append(str[i]);
                     }
                 } else if (s) {
-                    if (str[i] == ' ') {
+                    if (str[i] == Constants.Space) {
                         s = false;
-                        arguments.Add(e ? c.ToString() : c.ToString().TrimEnd(' '));
-                        c = new StringBuilder();
+                        arguments.Add(e ? stringBuilder.ToString() : stringBuilder.ToString().TrimEnd(Constants.Space));
+                        stringBuilder = new StringBuilder();
                     } else if (!e) {
-                        c.Append(str[i]);
+                        stringBuilder.Append(str[i]);
                     }
                 }
             }
-            if (c.Length > 0) {
-                arguments.Add(c.ToString());
+            if (stringBuilder.Length > 0) {
+                arguments.Add(stringBuilder.ToString());
             }
             return arguments;
         }
