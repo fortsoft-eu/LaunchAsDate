@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  **
- * Version 1.5.1.0
+ * Version 1.5.1.3
  */
 
 using FostSoft.Tools;
@@ -394,20 +394,16 @@ namespace LaunchAsDate {
             label6.Text = numericUpDown2.Value > 1 ? Properties.Resources.CaptionSeconds : Properties.Resources.CaptionSecond;
         }
 
-        private void OpenHelp(object sender, EventArgs e) {
-            if (InvokeRequired) {
-                Invoke(new EventHandler(OpenHelp), sender, e);
-            } else {
-                try {
-                    StringBuilder url = new StringBuilder()
-                        .Append(Properties.Resources.Website.TrimEnd(Constants.Slash).ToLowerInvariant())
-                        .Append(Constants.Slash)
-                        .Append(Application.ProductName.ToLowerInvariant())
-                        .Append(Constants.Slash);
-                    Process.Start(url.ToString());
-                } catch (Exception exception) {
-                    ShowException(exception);
-                }
+        private void OpenHelp(object sender, HelpEventArgs hlpevent) {
+            try {
+                StringBuilder url = new StringBuilder()
+                    .Append(Properties.Resources.Website.TrimEnd(Constants.Slash).ToLowerInvariant())
+                    .Append(Constants.Slash)
+                    .Append(Application.ProductName.ToLowerInvariant())
+                    .Append(Constants.Slash);
+                Process.Start(url.ToString());
+            } catch (Exception exception) {
+                ShowException(exception);
             }
         }
 
