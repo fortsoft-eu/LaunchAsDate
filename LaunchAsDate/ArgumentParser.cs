@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  **
- * Version 1.5.1.0
+ * Version 1.5.1.1
  */
 
 using System;
@@ -278,7 +278,7 @@ namespace LaunchAsDate {
                         throw new ApplicationException(Properties.Resources.ExceptionMessageF);
                     }
                     string[] span = spanRegex.Split(argument);
-                    if (int.Parse(span[2]) == 0) {
+                    if (int.Parse(span[2]).Equals(0)) {
                         throw new ApplicationException(Properties.Resources.ExceptionMessageZ);
                     }
                     if (span[3].Equals(Constants.EnglishYear, StringComparison.OrdinalIgnoreCase)
@@ -386,7 +386,7 @@ namespace LaunchAsDate {
                         } else {
                             stringBuilder.Append(c[i]);
                         }
-                    } else if (c[i] == Constants.QuotationMark) {
+                    } else if (c[i].Equals(Constants.QuotationMark)) {
                         if (i + 1 < c.Length && c[i + 1].Equals(Constants.QuotationMark)) {
                             stringBuilder.Append(c[++i]);
                         } else {
