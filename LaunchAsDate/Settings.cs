@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  **
- * Version 1.5.1.0
+ * Version 1.5.1.2
  */
 
 using FortSoft.Tools;
@@ -35,7 +35,7 @@ namespace LaunchAsDate {
     /// This is an implementation of using the PersistentSettings class for
     /// LaunchAsDate.
     /// </summary>
-    public class Settings : IDisposable {
+    public sealed class Settings : IDisposable {
 
         /// <summary>
         /// Field.
