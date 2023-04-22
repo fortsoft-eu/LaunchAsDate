@@ -1,7 +1,8 @@
 ﻿/**
  * This is open-source software licensed under the terms of the MIT License.
  *
- * Copyright (c) 2019-2022 Petr Červinka - FortSoft <cervinka@fortsoft.eu>
+ * Copyright (c) 2023 Petr Červinka - FortSoft <cervinka@fortsoft.eu>
+ * Copyright (c) 2012 Hamid Sadeghian
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,63 +25,43 @@
  * Version 1.1.0.0
  */
 
-using IWshRuntimeLibrary;
+using System;
+using System.Runtime.InteropServices;
 
-namespace FostSoft.Tools {
+namespace FortSoft.Controls {
 
     /// <summary>
-    /// Tool for creating Windows shortcuts (*.lnk).
+    /// Implements custom LinkLabel with proper system hand cursor.
     /// </summary>
-    public class ProgramShortcut {
+    public class LinkLabel : System.Windows.Forms.LinkLabel {
 
         /// <summary>
-        /// Field
+        /// Constant value found in the WinUser.h header file.
         /// </summary>
-        private WshShell wshShell;
+        public const int IDC_HAND = 0x7F89;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ProgramShortcut"/>
-        /// class.
+        /// Import
         /// </summary>
-        public ProgramShortcut() {
-            wshShell = new WshShell();
-        }
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern IntPtr LoadCursor(IntPtr hInstance, int lpCursorName);
 
         /// <summary>
-        /// Shortcut file path.
+        /// Proper system hand cursor.
         /// </summary>
-        public string ShortcutFilePath { get; set; }
+        private static readonly System.Windows.Forms.Cursor SystemHandCursor =
+            new System.Windows.Forms.Cursor(LoadCursor(IntPtr.Zero, IDC_HAND));
 
         /// <summary>
-        /// Target path.
+        /// Overriding OnMouseMove method. If the base class decided to show the
+        /// ugly hand cursor show the system hand cursor instead.
         /// </summary>
-        public string TargetPath { get; set; }
+        protected override void OnMouseMove(System.Windows.Forms.MouseEventArgs e) {
+            base.OnMouseMove(e);
 
-        /// <summary>
-        /// Working directory.
-        /// </summary>
-        public string WorkingDirectory { get; set; }
-
-        /// <summary>
-        /// Arguments.
-        /// </summary>
-        public string Arguments { get; set; }
-
-        /// <summary>
-        /// Icon location.
-        /// </summary>
-        public string IconLocation { get; set; }
-
-        /// <summary>
-        /// Creates Windows shortcut.
-        /// </summary>
-        public void Create() {
-            IWshShortcut shortcut = (IWshShortcut)wshShell.CreateShortcut(ShortcutFilePath);
-            shortcut.TargetPath = TargetPath;
-            shortcut.WorkingDirectory = WorkingDirectory;
-            shortcut.Arguments = Arguments;
-            shortcut.IconLocation = IconLocation;
-            shortcut.Save();
+            if (OverrideCursor == System.Windows.Forms.Cursors.Hand) {
+                OverrideCursor = SystemHandCursor;
+            }
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿/**
- * This library is open source software licensed under terms of the MIT License.
+ * This is open-source software licensed under the terms of the MIT License.
  *
- * Copyright (c) 2009-2022 Petr Červinka - FortSoft <cervinka@fortsoft.eu>
+ * Copyright (c) 2009-2023 Petr Červinka - FortSoft <cervinka@fortsoft.eu>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -302,39 +302,56 @@ namespace FortSoft.Tools {
                 }
                 Type type = value.GetType();
                 if (type == typeof(bool)) {
-                    registryKeyWritable.SetValue(valueName, (bool)value ? 1 : 0, RegistryValueKind.DWord);
+                    registryKeyWritable.SetValue(valueName,
+                        (bool)value ? 1 : 0, RegistryValueKind.DWord);
                 } else if (type == typeof(byte)) {
-                    registryKeyWritable.SetValue(valueName, (int)checked((byte)value), RegistryValueKind.DWord);
+                    registryKeyWritable.SetValue(valueName,
+                        (int)checked((byte)value), RegistryValueKind.DWord);
                 } else if (type == typeof(char)) {
-                    registryKeyWritable.SetValue(valueName, (int)(char)value, RegistryValueKind.DWord);
+                    registryKeyWritable.SetValue(valueName,
+                        (int)(char)value, RegistryValueKind.DWord);
                 } else if (type == typeof(Color)) {
-                    registryKeyWritable.SetValue(valueName, ((Color)value).ToArgb(), RegistryValueKind.DWord);
+                    registryKeyWritable.SetValue(valueName,
+                        ((Color)value).ToArgb(), RegistryValueKind.DWord);
                 } else if (type == typeof(DateTime)) {
-                    registryKeyWritable.SetValue(valueName, ((DateTime)value).ToBinary(), RegistryValueKind.QWord);
+                    registryKeyWritable.SetValue(valueName,
+                        ((DateTime)value).ToBinary(), RegistryValueKind.QWord);
                 } else if (type == typeof(decimal)) {
-                    registryKeyWritable.SetValue(valueName, ((decimal)value).ToString(CultureInfo.InvariantCulture), RegistryValueKind.String);
+                    registryKeyWritable.SetValue(valueName,
+                        ((decimal)value).ToString(CultureInfo.InvariantCulture), RegistryValueKind.String);
                 } else if (type == typeof(double)) {
-                    registryKeyWritable.SetValue(valueName, BitConverter.DoubleToInt64Bits((double)value), RegistryValueKind.QWord);
+                    registryKeyWritable.SetValue(valueName,
+                        BitConverter.DoubleToInt64Bits((double)value), RegistryValueKind.QWord);
                 } else if (type == typeof(float)) {
-                    registryKeyWritable.SetValue(valueName, BitConverter.ToInt32(BitConverter.GetBytes((float)value), 0), RegistryValueKind.DWord);
+                    registryKeyWritable.SetValue(valueName,
+                        BitConverter.ToInt32(BitConverter.GetBytes((float)value), 0), RegistryValueKind.DWord);
                 } else if (type == typeof(int)) {
-                    registryKeyWritable.SetValue(valueName, (int)value, RegistryValueKind.DWord);
+                    registryKeyWritable.SetValue(valueName,
+                        (int)value, RegistryValueKind.DWord);
                 } else if (type == typeof(long)) {
-                    registryKeyWritable.SetValue(valueName, (long)value, RegistryValueKind.QWord);
+                    registryKeyWritable.SetValue(valueName,
+                        (long)value, RegistryValueKind.QWord);
                 } else if (type == typeof(sbyte)) {
-                    registryKeyWritable.SetValue(valueName, (int)(sbyte)value, RegistryValueKind.DWord);
+                    registryKeyWritable.SetValue(valueName,
+                        (int)(sbyte)value, RegistryValueKind.DWord);
                 } else if (type == typeof(short)) {
-                    registryKeyWritable.SetValue(valueName, (int)(short)value, RegistryValueKind.DWord);
+                    registryKeyWritable.SetValue(valueName,
+                        (int)(short)value, RegistryValueKind.DWord);
                 } else if (type == typeof(TimeSpan)) {
-                    registryKeyWritable.SetValue(valueName, ((TimeSpan)value).Ticks, RegistryValueKind.QWord);
+                    registryKeyWritable.SetValue(valueName,
+                        ((TimeSpan)value).Ticks, RegistryValueKind.QWord);
                 } else if (type == typeof(uint)) {
-                    registryKeyWritable.SetValue(valueName, (int)checked((uint)value), RegistryValueKind.DWord);
+                    registryKeyWritable.SetValue(valueName,
+                        (int)checked((uint)value), RegistryValueKind.DWord);
                 } else if (type == typeof(ulong)) {
-                    registryKeyWritable.SetValue(valueName, (long)checked((ulong)value), RegistryValueKind.QWord);
+                    registryKeyWritable.SetValue(valueName,
+                        (long)checked((ulong)value), RegistryValueKind.QWord);
                 } else if (type == typeof(ushort)) {
-                    registryKeyWritable.SetValue(valueName, (int)checked((ushort)value), RegistryValueKind.DWord);
+                    registryKeyWritable.SetValue(valueName,
+                        (int)checked((ushort)value), RegistryValueKind.DWord);
                 } else {
-                    registryKeyWritable.SetValue(valueName, value);
+                    registryKeyWritable.SetValue(valueName,
+                        value);
                 }
                 Saved?.Invoke(this, new PersistentSettingsEventArgs(registryKeyWritable));
             } catch (IOException exception) {

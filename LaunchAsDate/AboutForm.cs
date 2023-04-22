@@ -1,7 +1,7 @@
 ﻿/**
- * This library is open source software licensed under terms of the MIT License.
+ * This is open-source software licensed under the terms of the MIT License.
  *
- * Copyright (c) 2020-2022 Petr Červinka - FortSoft <cervinka@fortsoft.eu>
+ * Copyright (c) 2020-2023 Petr Červinka - FortSoft <cervinka@fortsoft.eu>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  **
- * Version 1.0.0.1
+ * Version 1.5.1.0
  */
 
 using System;
@@ -35,28 +35,32 @@ using System.Windows.Forms;
 
 namespace LaunchAsDate {
     public partial class AboutForm : Form {
-        private const int defaultWidth = 420;
-
-        private StringBuilder stringBuilder;
         private Form dialog;
+        private StringBuilder stringBuilder;
 
         public AboutForm() {
-            InitializeComponent();
+            Text = new StringBuilder()
+                .Append(Properties.Resources.CaptionAbout)
+                .Append(Constants.Space)
+                .Append(Program.GetTitle())
+                .ToString();
 
-            Text = Properties.Resources.CaptionAbout + Constants.Space + Program.GetTitle();
+            InitializeComponent();
             pictureBox.Image = Properties.Resources.Icon.ToBitmap();
 
             panelProductInfo.ContextMenu = new ContextMenu();
-            panelProductInfo.ContextMenu.MenuItems.Add(new MenuItem(Properties.Resources.MenuItemCopyAbout, new EventHandler(CopyAbout)));
+            panelProductInfo.ContextMenu.MenuItems.Add(new MenuItem(Properties.Resources.MenuItemCopyAbout,
+                new EventHandler(CopyAbout)));
             panelWebsite.ContextMenu = new ContextMenu();
-            panelWebsite.ContextMenu.MenuItems.Add(new MenuItem(Properties.Resources.MenuItemCopyAbout, new EventHandler(CopyAbout)));
+            panelWebsite.ContextMenu.MenuItems.Add(new MenuItem(Properties.Resources.MenuItemCopyAbout,
+                new EventHandler(CopyAbout)));
 
-            stringBuilder = new StringBuilder();
-            stringBuilder.AppendLine(Program.GetTitle());
-            stringBuilder.AppendLine(WordWrap(Properties.Resources.Description, labelProductInfo.Font, defaultWidth - 70));
-            stringBuilder.Append(Properties.Resources.LabelVersion);
-            stringBuilder.Append(Constants.Space);
-            stringBuilder.AppendLine(Application.ProductVersion);
+            stringBuilder = new StringBuilder()
+                .AppendLine(Program.GetTitle())
+                .AppendLine(WordWrap(Properties.Resources.Description, labelProductInfo.Font, Constants.DefaultAboutFormWidth - 70))
+                .Append(Properties.Resources.LabelVersion)
+                .Append(Constants.Space)
+                .AppendLine(Application.ProductVersion);
             object[] attributes = Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(AssemblyCopyrightAttribute), false);
             if (attributes.Length > 0) {
                 AssemblyCopyrightAttribute assemblyCopyrightAttribute = (AssemblyCopyrightAttribute)attributes[0];
@@ -65,23 +69,34 @@ namespace LaunchAsDate {
             attributes = Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(TargetFrameworkAttribute), false);
             if (attributes.Length > 0) {
                 TargetFrameworkAttribute assemblyCopyrightAttribute = (TargetFrameworkAttribute)attributes[0];
-                stringBuilder.Append(Properties.Resources.LabelTargetFramework);
-                stringBuilder.Append(Constants.Space);
-                stringBuilder.AppendLine(assemblyCopyrightAttribute.FrameworkDisplayName);
+                stringBuilder.Append(Properties.Resources.LabelTargetFramework)
+                    .Append(Constants.Space)
+                    .AppendLine(assemblyCopyrightAttribute.FrameworkDisplayName);
             }
             labelProductInfo.Text = stringBuilder.ToString();
             labelWebsite.Text = Properties.Resources.LabelWebsite;
 
             linkLabel.ContextMenu = new ContextMenu();
-            linkLabel.ContextMenu.MenuItems.Add(new MenuItem(Properties.Resources.MenuItemCopyLink, new EventHandler(CopyLink)));
-            linkLabel.ContextMenu.MenuItems.Add(new MenuItem(Properties.Resources.MenuItemCopyAbout, new EventHandler(CopyAbout)));
-            linkLabel.Text = Properties.Resources.Website.TrimEnd(Constants.Slash).ToLowerInvariant() + Constants.Slash + Application.ProductName.ToLowerInvariant() + Constants.Slash;
+            linkLabel.ContextMenu.MenuItems.Add(new MenuItem(Properties.Resources.MenuItemOpenInDefaultBrowser,
+                new EventHandler(OpenLink)));
+            linkLabel.ContextMenu.MenuItems.Add(Constants.Hyphen.ToString());
+            linkLabel.ContextMenu.MenuItems.Add(new MenuItem(Properties.Resources.MenuItemCopyUrl,
+                new EventHandler(CopyLink)));
+            linkLabel.ContextMenu.MenuItems.Add(Constants.Hyphen.ToString());
+            linkLabel.ContextMenu.MenuItems.Add(new MenuItem(Properties.Resources.MenuItemCopyAbout,
+                new EventHandler(CopyAbout)));
+            linkLabel.Text = new StringBuilder()
+                .Append(Properties.Resources.Website.TrimEnd(Constants.Slash).ToLowerInvariant())
+                .Append(Constants.Slash)
+                .Append(Application.ProductName.ToLowerInvariant())
+                .Append(Constants.Slash)
+                .ToString();
             toolTip.SetToolTip(linkLabel, Properties.Resources.ToolTipVisit);
             button.Text = Properties.Resources.ButtonClose;
-            stringBuilder.AppendLine();
-            stringBuilder.Append(labelWebsite.Text);
-            stringBuilder.Append(Constants.Space);
-            stringBuilder.Append(linkLabel.Text);
+            stringBuilder.AppendLine()
+                .Append(labelWebsite.Text)
+                .Append(Constants.Space)
+                .Append(linkLabel.Text);
         }
 
         private void CopyAbout(object sender, EventArgs e) {
@@ -103,16 +118,29 @@ namespace LaunchAsDate {
         }
 
         private void OnLinkClicked(object sender, LinkLabelLinkClickedEventArgs e) {
-            if (e.Button == MouseButtons.Left) {
-                try {
-                    Process.Start(((LinkLabel)sender).Text);
-                    linkLabel.LinkVisited = true;
-                } catch (Exception exception) {
-                    Debug.WriteLine(exception);
-                    ErrorLog.WriteLine(exception);
-                    dialog = new MessageForm(this, exception.Message, Program.GetTitle() + Constants.Space + Constants.EnDash + Constants.Space + Properties.Resources.CaptionError, MessageForm.Buttons.OK, MessageForm.BoxIcon.Error);
-                    dialog.ShowDialog();
-                }
+            if (e.Button.Equals(MouseButtons.Left) || e.Button.Equals(MouseButtons.Middle)) {
+                OpenLink((LinkLabel)sender);
+            }
+        }
+
+        private void OpenLink(object sender, EventArgs e) {
+            OpenLink((LinkLabel)((MenuItem)sender).GetContextMenu().SourceControl);
+        }
+
+        private void OpenLink(LinkLabel linkLabel) {
+            try {
+                Process.Start(linkLabel.Text);
+                linkLabel.LinkVisited = true;
+            } catch (Exception exception) {
+                Debug.WriteLine(exception);
+                ErrorLog.WriteLine(exception);
+                StringBuilder title = new StringBuilder(Program.GetTitle())
+                    .Append(Constants.Space)
+                    .Append(Constants.EnDash)
+                    .Append(Constants.Space)
+                    .Append(Properties.Resources.CaptionError);
+                dialog = new MessageForm(this, exception.Message, title.ToString(), MessageForm.Buttons.OK, MessageForm.BoxIcon.Error);
+                dialog.ShowDialog(this);
             }
         }
 
@@ -132,18 +160,23 @@ namespace LaunchAsDate {
             StringBuilder stringBuilder = new StringBuilder();
             StringReader stringReader = new StringReader(text);
             for (string line; (line = stringReader.ReadLine()) != null;) {
-                string[] words = line.Split(Constants.Space);
                 StringBuilder builder = new StringBuilder();
-                foreach (string word in words) {
-                    if (builder.Length == 0) {
-                        builder.Append(word);
-                    } else if (TextRenderer.MeasureText(builder.ToString() + Constants.Space + word, font).Width <= width) {
-                        builder.Append(Constants.Space);
+                foreach (string word in line.Split(Constants.Space)) {
+                    if (builder.Length.Equals(0)) {
                         builder.Append(word);
                     } else {
-                        stringBuilder.AppendLine(builder.ToString());
-                        builder = new StringBuilder();
-                        builder.Append(word);
+                        string str = new StringBuilder()
+                            .Append(builder.ToString())
+                            .Append(Constants.Space)
+                            .Append(word)
+                            .ToString();
+                        if (TextRenderer.MeasureText(str, font).Width <= width) {
+                            builder.Append(Constants.Space)
+                                .Append(word);
+                        } else {
+                            stringBuilder.AppendLine(builder.ToString());
+                            builder = new StringBuilder(word);
+                        }
                     }
                 }
                 stringBuilder.AppendLine(builder.ToString());

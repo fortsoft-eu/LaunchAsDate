@@ -1,44 +1,76 @@
-﻿using Microsoft.Win32;
+﻿/**
+ * This is open-source software licensed under the terms of the MIT License.
+ *
+ * Copyright (c) 2020-2023 Petr Červinka - FortSoft <cervinka@fortsoft.eu>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ **
+ * Version 1.5.1.0
+ */
+
+using FortSoft.Tools;
+using Microsoft.Win32;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
 namespace LaunchAsDate {
-    public class LauncherAsDate {
-        [DllImport("kernel32.dll", EntryPoint = "GetSystemTime", SetLastError = true)]
-        private static extern void GetSystemTime(ref SystemTime sysTime);
-
-        [DllImport("kernel32.dll", EntryPoint = "SetSystemTime", SetLastError = true)]
-        private static extern bool SetSystemTime(ref SystemTime sysTime);
-
-        private string mutexId;
+    internal class LauncherAsDate : IDisposable {
+        private DateTime currentDateTime;
         private Mutex mutex;
         private Process process;
-        private DateTime currentDateTime;
+        private string mutexId;
 
-        public LauncherAsDate() {
-            mutexId = Path.Combine(Constants.MutexLocal, Application.CompanyName + Constants.Underscore + Application.ProductName);
+        internal LauncherAsDate() {
+            StringBuilder mutexPath = new StringBuilder()
+                .Append(Application.CompanyName)
+                .Append(Constants.Underscore)
+                .Append(Application.ProductName);
+            mutexId = Path.Combine(Constants.MutexLocal, mutexPath.ToString());
             process = new Process();
         }
 
-        public bool DisableTimeCorrection { get; set; }
+        internal bool DisableTimeCorrection { get; set; }
 
-        public bool ForceTimeCorrection { get; set; }
+        internal bool ForceTimeCorrection { get; set; }
 
-        public bool OneInstance { get; set; }
+        internal bool OneInstance { get; set; }
 
-        public DateTime DateTime { get; set; }
+        internal DateTime DateTime { get; set; }
 
-        public int Interval { get; set; }
+        internal int Interval { get; set; }
 
-        public string ApplicationFilePath { get; set; }
+        internal string ApplicationFilePath { get; set; }
 
-        public string Arguments { get; set; }
+        internal string Arguments { get; set; }
 
-        public string WorkingDirectory { get; set; }
+        internal string WorkingDirectory { get; set; }
+
+        public void Dispose() {
+            if (mutex != null) {
+                mutex.Dispose();
+            }
+            process.Dispose();
+        }
 
         private bool IsDynamicDaylightTimeDisabled() {
             RegistryKey registryKey = null;
@@ -50,7 +82,7 @@ namespace LaunchAsDate {
                 Debug.WriteLine(exception);
                 ErrorLog.WriteLine(exception);
             }
-            return value != 0;
+            return !value.Equals(0);
         }
 
         private bool IsRealTimeUniversal() {
@@ -63,10 +95,10 @@ namespace LaunchAsDate {
                 Debug.WriteLine(exception);
                 ErrorLog.WriteLine(exception);
             }
-            return value != 0;
+            return !value.Equals(0);
         }
 
-        public void Launch() {
+        internal void Launch() {
             if (OneInstance) {
                 if (SingleInstance.FocusRunning(ApplicationFilePath)) {
                     return;
@@ -80,49 +112,24 @@ namespace LaunchAsDate {
             process.StartInfo.FileName = ApplicationFilePath;
             process.StartInfo.Arguments = Arguments;
             process.StartInfo.WorkingDirectory = WorkingDirectory;
-            currentDateTime = GetSystemTime().AddSeconds(Interval);
+            currentDateTime = StaticMethods.GetSystemTime().AddSeconds(Interval);
             if (!DisableTimeCorrection) {
                 if (ForceTimeCorrection || !IsRealTimeUniversal() && !IsDynamicDaylightTimeDisabled()) {
-                    DateTime = DateTime.Add(TimeZone.CurrentTimeZone.GetUtcOffset(currentDateTime)).Subtract(TimeZone.CurrentTimeZone.GetUtcOffset(DateTime));
+                    DateTime = DateTime.Add(TimeZone.CurrentTimeZone.GetUtcOffset(currentDateTime))
+                        .Subtract(TimeZone.CurrentTimeZone.GetUtcOffset(DateTime));
                 }
             }
-            if (currentDateTime.Year != DateTime.Year || currentDateTime.Month != DateTime.Month || currentDateTime.Day != DateTime.Day) {
-                SetSystemTime(DateTime);
+            if (!currentDateTime.Year.Equals(DateTime.Year)
+                    || !currentDateTime.Month.Equals(DateTime.Month)
+                    || !currentDateTime.Day.Equals(DateTime.Day)) {
+
+                StaticMethods.SetSystemTime(DateTime);
                 process.Start();
                 Thread.Sleep(Interval * 1000);
-                SetSystemTime(currentDateTime);
+                StaticMethods.SetSystemTime(currentDateTime);
             } else {
                 process.Start();
             }
-        }
-
-        public static DateTime GetSystemTime() {
-            SystemTime systemTime = new SystemTime();
-            GetSystemTime(ref systemTime);
-            return new DateTime(systemTime.Year, systemTime.Month, systemTime.Day, systemTime.Hour, systemTime.Minute, systemTime.Second);
-        }
-
-        private static void SetSystemTime(DateTime dateTime) {
-            SystemTime systemTime = new SystemTime() {
-                Year = (ushort)dateTime.Year,
-                Month = (ushort)dateTime.Month,
-                Day = (ushort)dateTime.Day,
-                Hour = (ushort)dateTime.Hour,
-                Minute = (ushort)dateTime.Minute,
-                Second = (ushort)dateTime.Second
-            };
-            SetSystemTime(ref systemTime);
-        }
-
-        private struct SystemTime {
-            public ushort Year;
-            public ushort Month;
-            public ushort DayOfWeek;
-            public ushort Day;
-            public ushort Hour;
-            public ushort Minute;
-            public ushort Second;
-            public ushort Millisecond;
         }
     }
 }

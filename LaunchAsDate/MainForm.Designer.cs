@@ -1,4 +1,30 @@
-﻿namespace LaunchAsDate {
+﻿/**
+ * This is open-source software licensed under the terms of the MIT License.
+ *
+ * Copyright (c) 2020-2023 Petr Červinka - FortSoft <cervinka@fortsoft.eu>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ **
+ * Version 1.5.1.0
+ */
+
+namespace LaunchAsDate {
     partial class MainForm {
         /// <summary>
         /// Required designer variable.
@@ -61,9 +87,9 @@
             // 
             resources.ApplyResources(this.textBox1, "textBox1");
             this.textBox1.Name = "textBox1";
-            this.textBox1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.KeyDownHandler);
-            this.textBox1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBoxKeyPress);
-            this.textBox1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.TextBoxMouseDown);
+            this.textBox1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnKeyDown);
+            this.textBox1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.OnKeyPress);
+            this.textBox1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.OnMouseDown);
             // 
             // button1
             // 
@@ -86,7 +112,7 @@
             resources.GetString("comboBox1.Items"),
             resources.GetString("comboBox1.Items1")});
             this.comboBox1.Name = "comboBox1";
-            this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.SelectedIndexChanged);
+            this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.OnSelectedIndexChanged);
             // 
             // dateTimePicker
             // 
@@ -97,8 +123,8 @@
             // 
             resources.ApplyResources(this.numericUpDown1, "numericUpDown1");
             this.numericUpDown1.Name = "numericUpDown1";
-            this.numericUpDown1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.KeyDownHandler);
-            this.numericUpDown1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.NumericUpDownKeyPress);
+            this.numericUpDown1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnKeyDown);
+            this.numericUpDown1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.OnKeyPress);
             // 
             // comboBox2
             // 
@@ -120,9 +146,9 @@
             // 
             resources.ApplyResources(this.textBox2, "textBox2");
             this.textBox2.Name = "textBox2";
-            this.textBox2.KeyDown += new System.Windows.Forms.KeyEventHandler(this.KeyDownHandler);
-            this.textBox2.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBoxKeyPress);
-            this.textBox2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.TextBoxMouseDown);
+            this.textBox2.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnKeyDown);
+            this.textBox2.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.OnKeyPress);
+            this.textBox2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.OnMouseDown);
             // 
             // label4
             // 
@@ -133,17 +159,17 @@
             // 
             resources.ApplyResources(this.textBox3, "textBox3");
             this.textBox3.Name = "textBox3";
-            this.textBox3.KeyDown += new System.Windows.Forms.KeyEventHandler(this.KeyDownHandler);
-            this.textBox3.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBoxKeyPress);
-            this.textBox3.MouseDown += new System.Windows.Forms.MouseEventHandler(this.TextBoxMouseDown);
+            this.textBox3.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnKeyDown);
+            this.textBox3.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.OnKeyPress);
+            this.textBox3.MouseDown += new System.Windows.Forms.MouseEventHandler(this.OnMouseDown);
             // 
             // numericUpDown2
             // 
             resources.ApplyResources(this.numericUpDown2, "numericUpDown2");
             this.numericUpDown2.Name = "numericUpDown2";
-            this.numericUpDown2.ValueChanged += new System.EventHandler(this.ValueChanged);
-            this.numericUpDown2.KeyDown += new System.Windows.Forms.KeyEventHandler(this.KeyDownHandler);
-            this.numericUpDown2.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.NumericUpDownKeyPress);
+            this.numericUpDown2.ValueChanged += new System.EventHandler(this.OnValueChanged);
+            this.numericUpDown2.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnKeyDown);
+            this.numericUpDown2.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.OnKeyPress);
             // 
             // label5
             // 
@@ -195,9 +221,9 @@
             // 
             resources.ApplyResources(this.textBox4, "textBox4");
             this.textBox4.Name = "textBox4";
-            this.textBox4.KeyDown += new System.Windows.Forms.KeyEventHandler(this.KeyDownHandler);
-            this.textBox4.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TextBoxKeyPress);
-            this.textBox4.MouseDown += new System.Windows.Forms.MouseEventHandler(this.TextBoxMouseDown);
+            this.textBox4.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OnKeyDown);
+            this.textBox4.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.OnKeyPress);
+            this.textBox4.MouseDown += new System.Windows.Forms.MouseEventHandler(this.OnMouseDown);
             // 
             // folderBrowserDialog
             // 
@@ -245,10 +271,10 @@
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.Name = "MainForm";
-            this.Activated += new System.EventHandler(this.FormActivated);
-            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.MainFormClosing);
-            this.DragDrop += new System.Windows.Forms.DragEventHandler(this.MainFormDragDrop);
-            this.DragEnter += new System.Windows.Forms.DragEventHandler(this.MainFormDragEnter);
+            this.Activated += new System.EventHandler(this.OnFormActivated);
+            this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.OnFormClosing);
+            this.DragDrop += new System.Windows.Forms.DragEventHandler(this.OnDragDrop);
+            this.DragEnter += new System.Windows.Forms.DragEventHandler(this.OnDragEnter);
             this.HelpRequested += new System.Windows.Forms.HelpEventHandler(this.OpenHelp);
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDown2)).EndInit();

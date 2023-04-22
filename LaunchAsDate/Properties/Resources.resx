@@ -316,6 +316,12 @@
   <data name="MenuItemCopyLink" xml:space="preserve">
     <value>&amp;Copy Link</value>
   </data>
+  <data name="MenuItemCopyUrl" xml:space="preserve">
+    <value>&amp;Copy URL</value>
+  </data>
+  <data name="MenuItemOpenInDefaultBrowser" xml:space="preserve">
+    <value>&amp;Open in Default Browser...</value>
+  </data>
   <data name="MessageApplicationCannotRun" xml:space="preserve">
     <value>This applicacion cannot run on your system.</value>
   </data>

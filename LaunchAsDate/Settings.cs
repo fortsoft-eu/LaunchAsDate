@@ -1,7 +1,7 @@
 ﻿/**
- * This library is open source software licensed under terms of the MIT License.
+ * This is open-source software licensed under the terms of the MIT License.
  *
- * Copyright (c) 2009-2022 Petr Červinka - FortSoft <cervinka@fortsoft.eu>
+ * Copyright (c) 2020-2023 Petr Červinka - FortSoft <cervinka@fortsoft.eu>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  **
- * Version 1.0.0.1
+ * Version 1.5.1.0
  */
 
 using FortSoft.Tools;
@@ -38,7 +38,7 @@ namespace LaunchAsDate {
     public class Settings : IDisposable {
 
         /// <summary>
-        /// Field
+        /// Field.
         /// </summary>
         private PersistentSettings persistentSettings;
 
@@ -57,70 +57,16 @@ namespace LaunchAsDate {
         }
 
         /// <summary>
-        /// An example of software application setting that will be stored in the
-        /// Windows registry.
+        /// Represents the setting if the application should check for updates.
+        /// The default value is true.
         /// </summary>
-        public string ApplicationFilePath { get; set; }
+        public bool CheckForUpdates { get; set; } = true;
 
         /// <summary>
-        /// An example of software application setting that will be stored in the
-        /// Windows registry.
+        /// Represents whether visual styles will be used when rendering
+        /// application windows. The default value is false.
         /// </summary>
-        public int DateIndex { get; set; }
-
-        /// <summary>
-        /// An example of software application setting that will be stored in the
-        /// Windows registry.
-        /// </summary>
-        public DateTime DateTime { get; set; }
-
-        /// <summary>
-        /// An example of software application setting that will be stored in the
-        /// Windows registry.
-        /// </summary>
-        public int SpanValue { get; set; }
-
-        /// <summary>
-        /// An example of software application setting that will be stored in the
-        /// Windows registry.
-        /// </summary>
-        public int SpanIndex { get; set; }
-
-        /// <summary>
-        /// An example of software application setting that will be stored in the
-        /// Windows registry.
-        /// </summary>
-        public string Arguments { get; set; }
-
-        /// <summary>
-        /// An example of software application setting that will be stored in the
-        /// Windows registry.
-        /// </summary>
-        public string WorkingDirectory { get; set; }
-
-        /// <summary>
-        /// An example of software application setting that will be stored in the
-        /// Windows registry.
-        /// </summary>
-        public int Interval { get; set; }
-
-        /// <summary>
-        /// An example of software application setting that will be stored in the
-        /// Windows registry.
-        /// </summary>
-        public string ShortcutName { get; set; }
-
-        /// <summary>
-        /// An example of software application setting that will be stored in the
-        /// Windows registry.
-        /// </summary>
-        public bool OneInstance { get; set; }
-
-        /// <summary>
-        /// An example of software application setting that will be stored in the
-        /// Windows registry.
-        /// </summary>
-        public bool WarningOk { get; set; }
+        public bool DisableThemes { get; set; }
 
         /// <summary>
         /// An example of software application setting that will be stored in the
@@ -138,7 +84,81 @@ namespace LaunchAsDate {
         /// An example of software application setting that will be stored in the
         /// Windows registry.
         /// </summary>
-        public bool DisableThemes { get; set; }
+        public bool OneInstance { get; set; }
+
+        /// <summary>
+        /// Represents the printing setting, whether to use soft margins (larger)
+        /// or hard margins (smaller). This setting does not apply to the
+        /// embedded Chromium browser. The default value is true.
+        /// </summary>
+        public bool PrintSoftMargins { get; set; } = true;
+
+        /// <summary>
+        /// Represents the setting if the application should inform the user
+        /// about available updates in the status bar only. If not, a pop-up
+        /// window will appear. The default value is false.
+        /// </summary>
+        public bool StatusBarNotifOnly { get; set; }
+
+        /// <summary>
+        /// An example of software application setting that will be stored in the
+        /// Windows registry.
+        /// </summary>
+        public bool WarningOk { get; set; }
+
+        /// <summary>
+        /// An example of software application setting that will be stored in the
+        /// Windows registry.
+        /// </summary>
+        public DateTime DateTime { get; set; }
+
+        /// <summary>
+        /// An example of software application setting that will be stored in the
+        /// Windows registry.
+        /// </summary>
+        public int DateIndex { get; set; }
+
+        /// <summary>
+        /// An example of software application setting that will be stored in the
+        /// Windows registry.
+        /// </summary>
+        public int Interval { get; set; }
+
+        /// <summary>
+        /// An example of software application setting that will be stored in the
+        /// Windows registry.
+        /// </summary>
+        public int SpanIndex { get; set; }
+
+        /// <summary>
+        /// An example of software application setting that will be stored in the
+        /// Windows registry.
+        /// </summary>
+        public int SpanValue { get; set; }
+
+        /// <summary>
+        /// An example of software application setting that will be stored in the
+        /// Windows registry.
+        /// </summary>
+        public string ApplicationFilePath { get; set; }
+
+        /// <summary>
+        /// An example of software application setting that will be stored in the
+        /// Windows registry.
+        /// </summary>
+        public string Arguments { get; set; }
+
+        /// <summary>
+        /// An example of software application setting that will be stored in the
+        /// Windows registry.
+        /// </summary>
+        public string ShortcutName { get; set; }
+
+        /// <summary>
+        /// An example of software application setting that will be stored in the
+        /// Windows registry.
+        /// </summary>
+        public string WorkingDirectory { get; set; }
 
         /// <summary>
         /// Loads the software application settings from the Windows registry.
@@ -165,7 +185,9 @@ namespace LaunchAsDate {
             persistentSettings.Save("BitSettings", BitSettingsToInt());
             persistentSettings.Save("Path", ApplicationFilePath);
             persistentSettings.Save("DateIndex", DateIndex);
-            persistentSettings.Save("DateTime", IsToday(DateTime) ? Constants.ISO8601EmptyDate : DateTime.ToString(Constants.ISO8601DateFormat));
+            persistentSettings.Save("DateTime", IsToday(DateTime)
+                ? Constants.ISO8601EmptyDate
+                : DateTime.ToString(Constants.ISO8601DateFormat));
             persistentSettings.Save("Span", SpanValue);
             persistentSettings.Save("SpanIndex", SpanIndex);
             persistentSettings.Save("Arguments", Arguments);
@@ -182,23 +204,31 @@ namespace LaunchAsDate {
             BitArray bitArray = new BitArray(new int[] { i });
             bool[] bitSettings = new bool[bitArray.Count];
             bitArray.CopyTo(bitSettings, 0);
-            WarningOk = bitSettings[4];
-            DisableTimeCorrection = bitSettings[3];
-            ForceTimeCorrection = bitSettings[2];
-            OneInstance = bitSettings[1];
-            DisableThemes = bitSettings[0];
+            i = bitSettings.Length - 24;
+
+            WarningOk = bitSettings[--i];
+            DisableTimeCorrection = bitSettings[--i];
+            ForceTimeCorrection = bitSettings[--i];
+            OneInstance = bitSettings[--i];
+            DisableThemes = bitSettings[--i];
+            PrintSoftMargins = bitSettings[--i];
+            StatusBarNotifOnly = bitSettings[--i];
+            CheckForUpdates = bitSettings[--i];
         }
 
         /// <summary>
         /// Compacts some boolean settings into an integer value.
         /// </summary>
         private int BitSettingsToInt() {
-            StringBuilder stringBuilder = new StringBuilder(string.Empty.PadRight(27, Constants.Zero));
-            stringBuilder.Append(WarningOk ? 1 : 0);
-            stringBuilder.Append(DisableTimeCorrection ? 1 : 0);
-            stringBuilder.Append(ForceTimeCorrection ? 1 : 0);
-            stringBuilder.Append(OneInstance ? 1 : 0);
-            stringBuilder.Append(DisableThemes ? 1 : 0);
+            StringBuilder stringBuilder = new StringBuilder(string.Empty.PadRight(24, Constants.Zero))
+                .Append(WarningOk ? 1 : 0)
+                .Append(DisableTimeCorrection ? 1 : 0)
+                .Append(ForceTimeCorrection ? 1 : 0)
+                .Append(OneInstance ? 1 : 0)
+                .Append(DisableThemes ? 1 : 0)
+                .Append(PrintSoftMargins ? 1 : 0)
+                .Append(StatusBarNotifOnly ? 1 : 0)
+                .Append(CheckForUpdates ? 1 : 0);
             return Convert.ToInt32(stringBuilder.ToString(), 2);
         }
 
@@ -210,23 +240,18 @@ namespace LaunchAsDate {
         /// <summary>
         /// Clears the software application values from the Windows registry.
         /// </summary>
-        public void Clear() {
-            persistentSettings.Clear();
-        }
+        public void Clear() => persistentSettings.Clear();
 
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        public void Dispose() {
-            persistentSettings.Dispose();
-        }
+        /// <summary>Clean up any resources being used.</summary>
+        public void Dispose() => persistentSettings.Dispose();
 
-        /// <summary>
-        /// Check if the provided date is today.
-        /// </summary>
+        /// <summary>Check if the provided date is today.</summary>
         /// <param name="dateTime">A DateTime to check.</param>
+        /// <returns>True if provided date is today; otherwise false.</returns>
         private static bool IsToday(DateTime dateTime) {
-            return dateTime.Day == DateTime.Now.Day && dateTime.Month == DateTime.Now.Month && dateTime.Year == DateTime.Now.Year;
+            return dateTime.Day.Equals(DateTime.Now.Day)
+                && dateTime.Month.Equals(DateTime.Now.Month)
+                && dateTime.Year.Equals(DateTime.Now.Year);
         }
     }
 }

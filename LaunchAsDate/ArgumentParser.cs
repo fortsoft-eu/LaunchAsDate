@@ -1,61 +1,102 @@
-﻿using System;
+﻿/**
+ * This is open-source software licensed under the terms of the MIT License.
+ *
+ * Copyright (c) 2020-2023 Petr Červinka - FortSoft <cervinka@fortsoft.eu>
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ **
+ * Version 1.5.1.0
+ */
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace LaunchAsDate {
-    public class ArgumentParser {
-        private List<string> arguments;
-        private string argumentString, applicationFilePath, applicationArguments, workingDirectory;
-        private int interval;
+    internal class ArgumentParser {
+        private bool argumentsSet;
+        private bool dateSet;
+        private bool expectingArguments;
+        private bool expectingDate;
+        private bool expectingFilePath;
+        private bool expectingFolderPath;
+        private bool expectingInterval;
+        private bool expectingSpan;
+        private bool filePathSet;
+        private bool folderPathSet;
+        private bool hasArguments;
+        private bool helpSet;
+        private bool intervalSet;
+        private bool oneInstanceSet;
+        private bool spanSet;
+        private bool testSet;
+        private bool thisTestSet;
         private DateTime? dateTime;
-        private bool expectingFilePath, expectingDate, expectingSpan, expectingArguments, expectingInterval, expectingFolderPath, filePathSet;
-        private bool dateSet, spanSet, argumentsSet, intervalSet, folderPathSet, testSet, helpSet, hasArguments, oneInstanceSet, thisTestSet;
+        private int interval;
+        private List<string> arguments;
         private Regex spanRegex;
+        private string applicationArguments;
+        private string applicationFilePath;
+        private string argumentString;
+        private string workingDirectory;
 
-        public ArgumentParser() {
-            spanRegex = new Regex("^([-+])(\\d+)(" + Constants.EnglishDay + Constants.VerticalBar + Constants.EnglishDays + Constants.VerticalBar
-                + Constants.EnglishMonth + Constants.VerticalBar + Constants.EnglishMonths + Constants.VerticalBar + Constants.EnglishYear
-                + Constants.VerticalBar + Constants.EnglishYears + ")$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        internal ArgumentParser() {
+            StringBuilder spanPattern = new StringBuilder()
+                .Append(Constants.SpanPatternStart)
+                .Append(Constants.OpeningParenthesis)
+                .Append(Constants.EnglishDay)
+                .Append(Constants.VerticalBar)
+                .Append(Constants.EnglishDays)
+                .Append(Constants.VerticalBar)
+                .Append(Constants.EnglishMonth)
+                .Append(Constants.VerticalBar)
+                .Append(Constants.EnglishMonths)
+                .Append(Constants.VerticalBar)
+                .Append(Constants.EnglishYear)
+                .Append(Constants.VerticalBar)
+                .Append(Constants.EnglishYears)
+                .Append(Constants.ClosingParenthesis)
+                .Append(Constants.DollarSign);
+            spanRegex = new Regex(spanPattern.ToString(), RegexOptions.IgnoreCase | RegexOptions.Compiled);
             Reset();
         }
 
-        public bool HasArguments => hasArguments;
+        internal bool HasArguments => hasArguments;
 
-        public bool IsHelp => helpSet;
+        internal bool IsHelp => helpSet;
 
-        public bool IsTest => testSet;
+        internal bool IsTest => testSet;
 
-        public bool IsThisTest => thisTestSet;
+        internal bool IsThisTest => thisTestSet;
 
-        public bool OneInstance => oneInstanceSet;
+        internal bool OneInstance => oneInstanceSet;
 
-        public DateTime? DateTime => dateTime;
+        internal DateTime? DateTime => dateTime;
 
-        public int Interval => interval;
+        internal int Interval => interval;
 
-        public string ApplicationArguments => applicationArguments;
+        internal string ApplicationArguments => applicationArguments;
 
-        public string ApplicationFilePath => applicationFilePath;
+        internal string ApplicationFilePath => applicationFilePath;
 
-        public string[] Arguments {
-            get {
-                return arguments.ToArray();
-            }
-            set {
-                Reset();
-                arguments = new List<string>(value.Length);
-                arguments.AddRange(value);
-                try {
-                    Evaluate();
-                } catch (Exception exception) {
-                    Reset();
-                    throw exception;
-                }
-            }
-        }
-
-        public string ArgumentString {
+        internal string ArgumentString {
             get {
                 if (string.IsNullOrEmpty(argumentString) && arguments.Count > 0) {
                     return string.Join(Constants.Space.ToString(), arguments);
@@ -75,84 +116,146 @@ namespace LaunchAsDate {
             }
         }
 
-        public string WorkingDirectory => workingDirectory;
+        internal string WorkingDirectory => workingDirectory;
+
+        internal string[] Arguments {
+            get {
+                return arguments.ToArray();
+            }
+            set {
+                Reset();
+                arguments = new List<string>(value.Length);
+                arguments.AddRange(value);
+                try {
+                    Evaluate();
+                } catch (Exception exception) {
+                    Reset();
+                    throw exception;
+                }
+            }
+        }
 
         private void Evaluate() {
-            DateTime systemDateTime = LauncherAsDate.GetSystemTime();
+            DateTime systemDateTime = StaticMethods.GetSystemTime();
             foreach (string arg in arguments) {
                 string argument = arg;
                 hasArguments = true;
-                if (argument == "-i" || argument == "/i") {             //Input file path: Application to launch.
+
+                // Input file path: Application to launch.
+                if (argument.Equals(Constants.CommandLineSwitchUI) || argument.Equals(Constants.CommandLineSwitchWI)) {
                     if (filePathSet || expectingFilePath) {
                         throw new ApplicationException(Properties.Resources.ExceptionMessageI);
                     }
-                    if (expectingDate || expectingSpan || expectingArguments || expectingInterval || expectingFolderPath || testSet || helpSet || thisTestSet) {
+                    if (expectingDate || expectingSpan || expectingArguments || expectingInterval || expectingFolderPath || testSet
+                        || helpSet || thisTestSet) {
+
                         throw new ApplicationException(Properties.Resources.ExceptionMessageM);
                     }
                     expectingFilePath = true;
-                } else if (argument == "-d" || argument == "/d") {      //Absolute date in format yyyy-mm-dd.
+
+                    // Absolute date in format yyyy-mm-dd.
+                } else if (argument.Equals(Constants.CommandLineSwitchUD) || argument.Equals(Constants.CommandLineSwitchWD)) {
                     if (dateSet || expectingDate) {
                         throw new ApplicationException(Properties.Resources.ExceptionMessageD);
                     }
                     if (dateTime.HasValue) {
                         throw new ApplicationException(Properties.Resources.ExceptionMessageT);
                     }
-                    if (expectingFilePath || expectingSpan || expectingArguments || expectingInterval || expectingFolderPath || testSet || helpSet || thisTestSet) {
+                    if (expectingFilePath || expectingSpan || expectingArguments || expectingInterval || expectingFolderPath || testSet
+                            || helpSet || thisTestSet) {
+
                         throw new ApplicationException(Properties.Resources.ExceptionMessageM);
                     }
                     expectingDate = true;
-                } else if (argument == "-r" || argument == "/r") {      //Relative time span in format for example -9day, -1year, +2month.
+
+                    // Relative time span in format for example -9day, -1year, +2month.
+                } else if (argument.Equals(Constants.CommandLineSwitchUR) || argument.Equals(Constants.CommandLineSwitchWR)) {
                     if (spanSet || expectingSpan) {
                         throw new ApplicationException(Properties.Resources.ExceptionMessageQ);
                     }
                     if (dateTime.HasValue) {
                         throw new ApplicationException(Properties.Resources.ExceptionMessageT);
                     }
-                    if (expectingFilePath || expectingDate || expectingArguments || expectingInterval || expectingFolderPath || testSet || helpSet || thisTestSet) {
+                    if (expectingFilePath || expectingDate || expectingArguments || expectingInterval || expectingFolderPath || testSet
+                            || helpSet || thisTestSet) {
+
                         throw new ApplicationException(Properties.Resources.ExceptionMessageM);
                     }
                     expectingSpan = true;
-                } else if (argument == "-a" || argument == "/a") {      //Arguments passed to the launched application.
+
+                    // Arguments passed to the launched application.
+                } else if (argument.Equals(Constants.CommandLineSwitchUA) || argument.Equals(Constants.CommandLineSwitchWA)) {
                     if (argumentsSet || expectingArguments) {
                         throw new ApplicationException(Properties.Resources.ExceptionMessageA);
                     }
-                    if (expectingFilePath || expectingDate || expectingSpan || expectingInterval || expectingFolderPath || testSet || helpSet || thisTestSet) {
+                    if (expectingFilePath || expectingDate || expectingSpan || expectingInterval || expectingFolderPath || testSet
+                            || helpSet || thisTestSet) {
+
                         throw new ApplicationException(Properties.Resources.ExceptionMessageM);
                     }
                     expectingArguments = true;
-                } else if (argument == "-s" || argument == "/s") {      //Interval in seconds to return to the current date.
+
+                    // Interval in seconds to return to the current date.
+                } else if (argument.Equals(Constants.CommandLineSwitchUS) || argument.Equals(Constants.CommandLineSwitchWS)) {
                     if (intervalSet || expectingInterval) {
                         throw new ApplicationException(Properties.Resources.ExceptionMessageS);
                     }
-                    if (expectingFilePath || expectingDate || expectingSpan || expectingArguments || expectingFolderPath || testSet || helpSet || thisTestSet) {
+                    if (expectingFilePath || expectingDate || expectingSpan || expectingArguments || expectingFolderPath || testSet
+                            || helpSet || thisTestSet) {
+
                         throw new ApplicationException(Properties.Resources.ExceptionMessageM);
                     }
                     expectingInterval = true;
-                } else if (argument == "-w" || argument == "/w") {      //Working folder path.
+
+                    // Working folder path.
+                } else if (argument.Equals(Constants.CommandLineSwitchUW) || argument.Equals(Constants.CommandLineSwitchWW)) {
                     if (folderPathSet || expectingFolderPath) {
                         throw new ApplicationException(Properties.Resources.ExceptionMessageW);
                     }
-                    if (expectingFilePath || expectingDate || expectingSpan || expectingArguments || expectingInterval || testSet || helpSet || thisTestSet) {
+                    if (expectingFilePath || expectingDate || expectingSpan || expectingArguments || expectingInterval || testSet
+                            || helpSet || thisTestSet) {
+
                         throw new ApplicationException(Properties.Resources.ExceptionMessageM);
                     }
                     expectingFolderPath = true;
-                } else if (argument == "-o" || argument == "/o") {      //Allows only one instance.
-                    if (oneInstanceSet || testSet || helpSet || thisTestSet || expectingFilePath || expectingDate || expectingSpan || expectingArguments || expectingInterval || expectingFolderPath) {
+
+                    // Allows only one instance.
+                } else if (argument.Equals(Constants.CommandLineSwitchUO) || argument.Equals(Constants.CommandLineSwitchWO)) {
+                    if (oneInstanceSet || testSet || helpSet || thisTestSet || expectingFilePath || expectingDate || expectingSpan
+                            || expectingArguments || expectingInterval || expectingFolderPath) {
+
                         throw new ApplicationException(Properties.Resources.ExceptionMessageM);
                     }
                     oneInstanceSet = true;
-                } else if (argument == "-t" || argument == "/t") {      //Test mode (will show form with the date launched).
-                    if (filePathSet || dateSet || spanSet || argumentsSet || intervalSet || oneInstanceSet || testSet || helpSet || thisTestSet || expectingFilePath || expectingDate || expectingSpan || expectingArguments || expectingInterval || expectingFolderPath) {
+
+                    // Test mode (will show form with the date launched).
+                } else if (argument.Equals(Constants.CommandLineSwitchUT) || argument.Equals(Constants.CommandLineSwitchWT)) {
+                    if (filePathSet || dateSet || spanSet || argumentsSet || intervalSet || oneInstanceSet || testSet || helpSet
+                            || thisTestSet || expectingFilePath || expectingDate || expectingSpan || expectingArguments
+                            || expectingInterval || expectingFolderPath) {
+
                         throw new ApplicationException(Properties.Resources.ExceptionMessageM);
                     }
                     testSet = true;
-                } else if (argument == "-h" || argument == "/h" || argument == "-?" || argument == "/?") {      //Will show help.
-                    if (filePathSet || dateSet || spanSet || argumentsSet || intervalSet || oneInstanceSet || testSet || helpSet || thisTestSet || expectingFilePath || expectingDate || expectingSpan || expectingArguments || expectingInterval || expectingFolderPath) {
+
+                    // Will show help.
+                } else if (argument.Equals(Constants.CommandLineSwitchUH) || argument.Equals(Constants.CommandLineSwitchWH)
+                        || argument.Equals(Constants.CommandLineSwitchUQ) || argument.Equals(Constants.CommandLineSwitchWQ)) {
+
+                    if (filePathSet || dateSet || spanSet || argumentsSet || intervalSet || oneInstanceSet || testSet || helpSet
+                            || thisTestSet || expectingFilePath || expectingDate || expectingSpan || expectingArguments
+                            || expectingInterval || expectingFolderPath) {
+
                         throw new ApplicationException(Properties.Resources.ExceptionMessageM);
                     }
                     helpSet = true;
-                } else if (argument == "-T" || argument == "/T") {      //Test mode (ArgumentParser test).
-                    if (filePathSet || dateSet || spanSet || argumentsSet || intervalSet || oneInstanceSet || testSet || helpSet || thisTestSet || expectingFilePath || expectingDate || expectingSpan || expectingArguments || expectingInterval || expectingFolderPath) {
+
+                    // Test mode (ArgumentParser test).
+                } else if (argument.Equals(Constants.CommandLineSwitchUU) || argument.Equals(Constants.CommandLineSwitchWU)) {
+                    if (filePathSet || dateSet || spanSet || argumentsSet || intervalSet || oneInstanceSet || testSet || helpSet
+                            || thisTestSet || expectingFilePath || expectingDate || expectingSpan || expectingArguments
+                            || expectingInterval || expectingFolderPath) {
+
                         throw new ApplicationException(Properties.Resources.ExceptionMessageM);
                     }
                     thisTestSet = true;
@@ -178,12 +281,22 @@ namespace LaunchAsDate {
                     if (int.Parse(span[2]) == 0) {
                         throw new ApplicationException(Properties.Resources.ExceptionMessageZ);
                     }
-                    if (span[3].Equals(Constants.EnglishYear, StringComparison.OrdinalIgnoreCase) || span[3].Equals(Constants.EnglishYears, StringComparison.OrdinalIgnoreCase)) {
-                        dateTime = systemDateTime.AddYears(span[1].Equals(Constants.Hyphen.ToString()) ? 0 - int.Parse(span[2]) : int.Parse(span[2]));
-                    } else if (span[3].Equals(Constants.EnglishMonth, StringComparison.OrdinalIgnoreCase) || span[3].Equals(Constants.EnglishMonth, StringComparison.OrdinalIgnoreCase)) {
-                        dateTime = systemDateTime.AddMonths(span[1].Equals(Constants.Hyphen.ToString()) ? 0 - int.Parse(span[2]) : int.Parse(span[2]));
+                    if (span[3].Equals(Constants.EnglishYear, StringComparison.OrdinalIgnoreCase)
+                            || span[3].Equals(Constants.EnglishYears, StringComparison.OrdinalIgnoreCase)) {
+
+                        dateTime = systemDateTime.AddYears(span[1].Equals(Constants.Hyphen.ToString())
+                            ? 0 - int.Parse(span[2])
+                            : int.Parse(span[2]));
+                    } else if (span[3].Equals(Constants.EnglishMonth, StringComparison.OrdinalIgnoreCase)
+                            || span[3].Equals(Constants.EnglishMonth, StringComparison.OrdinalIgnoreCase)) {
+
+                        dateTime = systemDateTime.AddMonths(span[1].Equals(Constants.Hyphen.ToString())
+                            ? 0 - int.Parse(span[2])
+                            : int.Parse(span[2]));
                     } else {
-                        dateTime = systemDateTime.AddDays(span[1].Equals(Constants.Hyphen.ToString()) ? 0 - double.Parse(span[2]) : double.Parse(span[2]));
+                        dateTime = systemDateTime.AddDays(span[1].Equals(Constants.Hyphen.ToString())
+                            ? 0 - double.Parse(span[2])
+                            : double.Parse(span[2]));
                     }
                     expectingSpan = false;
                     spanSet = true;
@@ -212,58 +325,54 @@ namespace LaunchAsDate {
                 throw new ApplicationException(Properties.Resources.ExceptionMessageM);
             }
             if (hasArguments && !testSet && !helpSet && !thisTestSet) {
-                if (!dateTime.HasValue && interval == 0) {
+                if (!dateTime.HasValue && interval.Equals(0)) {
                     throw new ApplicationException(Properties.Resources.ExceptionMessageJ);
                 }
                 if (!dateTime.HasValue) {
                     throw new ApplicationException(Properties.Resources.ExceptionMessageK);
                 }
-                if (interval == 0) {
+                if (interval.Equals(0)) {
                     throw new ApplicationException(Properties.Resources.ExceptionMessageL);
                 }
             }
         }
 
         private void Reset() {
-            applicationFilePath = string.Empty;
             applicationArguments = string.Empty;
-            workingDirectory = string.Empty;
-            interval = 0;
-            dateTime = null;
-            expectingFilePath = false;
-            expectingDate = false;
-            expectingSpan = false;
-            expectingArguments = false;
-            expectingInterval = false;
-            expectingFolderPath = false;
-            filePathSet = false;
-            dateSet = false;
-            spanSet = false;
+            applicationFilePath = string.Empty;
             argumentsSet = false;
-            intervalSet = false;
+            dateSet = false;
+            dateTime = null;
+            expectingArguments = false;
+            expectingDate = false;
+            expectingFilePath = false;
+            expectingFolderPath = false;
+            expectingInterval = false;
+            expectingSpan = false;
+            filePathSet = false;
             folderPathSet = false;
-            testSet = false;
-            helpSet = false;
             hasArguments = false;
+            helpSet = false;
+            interval = 0;
+            intervalSet = false;
             oneInstanceSet = false;
+            spanSet = false;
+            testSet = false;
             thisTestSet = false;
-        }
-
-        public static string EscapeArgument(string argument) {
-            argument = Regex.Replace(argument, @"(\\*)" + "\"", @"$1$1\" + "\"");
-            return "\"" + Regex.Replace(argument, @"(\\+)$", @"$1$1") + "\"";
+            workingDirectory = string.Empty;
         }
 
         private static List<string> Parse(string str) {
+            char[] c = str.ToCharArray();
             List<string> arguments = new List<string>();
             StringBuilder stringBuilder = new StringBuilder();
             bool e = false, d = false, s = false;
-            for (int i = 0; i < str.Length; i++) {
+            for (int i = 0; i < c.Length; i++) {
                 if (!s) {
-                    if (str[i] == Constants.Space) {
+                    if (c[i].Equals(Constants.Space)) {
                         continue;
                     }
-                    d = str[i] == Constants.QuotationMark;
+                    d = c[i].Equals(Constants.QuotationMark);
                     s = true;
                     e = false;
                     if (d) {
@@ -271,29 +380,29 @@ namespace LaunchAsDate {
                     }
                 }
                 if (d) {
-                    if (str[i] == Constants.BackSlash) {
-                        if (i + 1 < str.Length && str[i + 1] == Constants.QuotationMark) {
-                            stringBuilder.Append(str[++i]);
+                    if (c[i].Equals(Constants.BackSlash)) {
+                        if (i + 1 < c.Length && c[i + 1].Equals(Constants.QuotationMark)) {
+                            stringBuilder.Append(c[++i]);
                         } else {
-                            stringBuilder.Append(str[i]);
+                            stringBuilder.Append(c[i]);
                         }
-                    } else if (str[i] == Constants.QuotationMark) {
-                        if (i + 1 < str.Length && str[i + 1] == Constants.QuotationMark) {
-                            stringBuilder.Append(str[++i]);
+                    } else if (c[i] == Constants.QuotationMark) {
+                        if (i + 1 < c.Length && c[i + 1].Equals(Constants.QuotationMark)) {
+                            stringBuilder.Append(c[++i]);
                         } else {
                             d = false;
                             e = true;
                         }
                     } else {
-                        stringBuilder.Append(str[i]);
+                        stringBuilder.Append(c[i]);
                     }
                 } else if (s) {
-                    if (str[i] == Constants.Space) {
+                    if (c[i].Equals(Constants.Space)) {
                         s = false;
                         arguments.Add(e ? stringBuilder.ToString() : stringBuilder.ToString().TrimEnd(Constants.Space));
                         stringBuilder = new StringBuilder();
                     } else if (!e) {
-                        stringBuilder.Append(str[i]);
+                        stringBuilder.Append(c[i]);
                     }
                 }
             }

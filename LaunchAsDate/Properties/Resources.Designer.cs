@@ -656,6 +656,24 @@ namespace LaunchAsDate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &amp;Copy URL.
+        /// </summary>
+        internal static string MenuItemCopyUrl {
+            get {
+                return ResourceManager.GetString("MenuItemCopyUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &amp;Open in Default Browser....
+        /// </summary>
+        internal static string MenuItemOpenInDefaultBrowser {
+            get {
+                return ResourceManager.GetString("MenuItemOpenInDefaultBrowser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This applicacion cannot run on your system..
         /// </summary>
         internal static string MessageApplicationCannotRun {
