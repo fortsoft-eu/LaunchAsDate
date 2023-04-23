@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  **
- * Version 1.5.1.0
+ * Version 1.5.2.0
  */
 
 using FortSoft.Tools;
@@ -62,56 +62,40 @@ namespace LaunchAsDate {
             }
             if (argumentParser.HasArguments) {
                 if (argumentParser.IsHelp) {
-                    StringBuilder stringBuilder = new StringBuilder()
-                    .AppendLine(Properties.Resources.HelpLine1.Replace(
-                        Constants.BackSlash.ToString() + Constants.VerticalTab.ToString(), Constants.VerticalTab.ToString()))
-                    .AppendLine()
-                    .AppendLine(Properties.Resources.HelpLine2.Replace(
-                        Constants.BackSlash.ToString() + Constants.VerticalTab.ToString(), Constants.VerticalTab.ToString()))
-                    .AppendLine(Properties.Resources.HelpLine3.Replace(
-                        Constants.BackSlash.ToString() + Constants.VerticalTab.ToString(), Constants.VerticalTab.ToString()))
-                    .AppendLine(Properties.Resources.HelpLine4.Replace(
-                        Constants.BackSlash.ToString() + Constants.VerticalTab.ToString(), Constants.VerticalTab.ToString()))
-                    .AppendLine()
-                    .AppendLine(Properties.Resources.HelpLine5.Replace(
-                        Constants.BackSlash.ToString() + Constants.VerticalTab.ToString(), Constants.VerticalTab.ToString()))
-                    .AppendLine(Properties.Resources.HelpLine6.Replace(
-                        Constants.BackSlash.ToString() + Constants.VerticalTab.ToString(), Constants.VerticalTab.ToString()))
-                    .AppendLine()
-                    .AppendLine(Properties.Resources.HelpLine7.Replace(
-                        Constants.BackSlash.ToString() + Constants.VerticalTab.ToString(), Constants.VerticalTab.ToString()))
-                    .AppendLine(Properties.Resources.HelpLine8.Replace(
-                        Constants.BackSlash.ToString() + Constants.VerticalTab.ToString(), Constants.VerticalTab.ToString()))
-                    .AppendLine()
-                    .AppendLine(Properties.Resources.HelpLine9.Replace(
-                        Constants.BackSlash.ToString() + Constants.VerticalTab.ToString(), Constants.VerticalTab.ToString()))
-                    .AppendLine(Properties.Resources.HelpLine10.Replace(
-                        Constants.BackSlash.ToString() + Constants.VerticalTab.ToString(), Constants.VerticalTab.ToString()))
-                    .AppendLine()
-                    .AppendLine(Properties.Resources.HelpLine11.Replace(
-                        Constants.BackSlash.ToString() + Constants.VerticalTab.ToString(), Constants.VerticalTab.ToString()))
-                    .AppendLine(Properties.Resources.HelpLine12.Replace(
-                        Constants.BackSlash.ToString() + Constants.VerticalTab.ToString(), Constants.VerticalTab.ToString()))
-                    .AppendLine()
-                    .AppendLine(Properties.Resources.HelpLine13.Replace(
-                        Constants.BackSlash.ToString() + Constants.VerticalTab.ToString(), Constants.VerticalTab.ToString()))
-                    .AppendLine()
-                    .AppendLine(Properties.Resources.HelpLine14.Replace(
-                        Constants.BackSlash.ToString() + Constants.VerticalTab.ToString(), Constants.VerticalTab.ToString()))
-                    .AppendLine(Properties.Resources.HelpLine15.Replace(
-                        Constants.BackSlash.ToString() + Constants.VerticalTab.ToString(), Constants.VerticalTab.ToString()))
-                    .AppendLine()
-                    .AppendLine(Properties.Resources.HelpLine16.Replace(
-                        Constants.BackSlash.ToString() + Constants.VerticalTab.ToString(), Constants.VerticalTab.ToString()))
-                    .AppendLine()
-                    .AppendLine(Properties.Resources.HelpLine17.Replace(
-                        Constants.BackSlash.ToString() + Constants.VerticalTab.ToString(), Constants.VerticalTab.ToString()))
-                    .AppendLine()
-                    .AppendLine(Properties.Resources.HelpLine18.Replace(
-                        Constants.BackSlash.ToString() + Constants.VerticalTab.ToString(), Constants.VerticalTab.ToString()));
-
-                    MessageBox.Show(stringBuilder.ToString(), GetTitle(Properties.Resources.CaptionHelp), MessageBoxButtons.OK,
-                        MessageBoxIcon.Question);
+                    StringBuilder help = new StringBuilder()
+                        .AppendLine(Properties.Resources.HelpLine1)
+                        .AppendLine()
+                        .AppendLine(Properties.Resources.HelpLine2)
+                        .AppendLine(Properties.Resources.HelpLine3)
+                        .AppendLine(Properties.Resources.HelpLine4)
+                        .AppendLine()
+                        .AppendLine(Properties.Resources.HelpLine5)
+                        .AppendLine(Properties.Resources.HelpLine6)
+                        .AppendLine()
+                        .AppendLine(Properties.Resources.HelpLine7)
+                        .AppendLine(Properties.Resources.HelpLine8)
+                        .AppendLine()
+                        .AppendLine(Properties.Resources.HelpLine9)
+                        .AppendLine(Properties.Resources.HelpLine10)
+                        .AppendLine()
+                        .AppendLine(Properties.Resources.HelpLine11)
+                        .AppendLine(Properties.Resources.HelpLine12)
+                        .AppendLine()
+                        .AppendLine(Properties.Resources.HelpLine13)
+                        .AppendLine()
+                        .AppendLine(Properties.Resources.HelpLine14)
+                        .AppendLine(Properties.Resources.HelpLine15)
+                        .AppendLine()
+                        .AppendLine(Properties.Resources.HelpLine16)
+                        .AppendLine()
+                        .AppendLine(Properties.Resources.HelpLine17)
+                        .AppendLine()
+                        .AppendLine(Properties.Resources.HelpLine18);
+                    StringBuilder replace = new StringBuilder()
+                        .Append(Constants.BackSlash)
+                        .Append(Constants.LowerCaseT);
+                    MessageBox.Show(help.ToString().Replace(replace.ToString(), Constants.VerticalTab.ToString()),
+                        GetTitle(Properties.Resources.CaptionHelp), MessageBoxButtons.OK, MessageBoxIcon.Question);
                 } else if (argumentParser.IsTest) {
                     try {
                         Application.Run(new TestForm(args));

@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  **
- * Version 1.5.1.0
+ * Version 1.5.2.0
  */
 
 namespace LaunchAsDate {
@@ -90,6 +90,7 @@ namespace LaunchAsDate {
         public const char Five = '5';
         public const char Hyphen = '-';
         public const char LineFeed = '\n';
+        public const char LowerCaseT = 't';
         public const char NumberSign = '#';
         public const char OpeningParenthesis = '(';
         public const char Plus = '+';
