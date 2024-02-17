@@ -18,6 +18,6 @@ instance.
 
 The application does not need to be installed on the target computer. It only
 necessitates the **.NET Framework** to operate. The specific target framework is
-the **4.0 Client Profile**.
+the **.NET Framework 4 Client Profile**.
 
 **LaunchAsDate** is released under the **MIT license**.
