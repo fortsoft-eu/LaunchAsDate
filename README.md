@@ -18,6 +18,7 @@ instance.
 
 The application does not need to be installed on the target computer. It only
 necessitates the **.NET Framework** to operate. The specific target framework is
-the **.NET Framework 4 Client Profile**.
+the **.NET Framework 4 Client Profile** for backward compatibility with
+**Windows XP Service Pack 3**.
 
 **LaunchAsDate** is released under the **MIT license**.
