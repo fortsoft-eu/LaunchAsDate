@@ -17,8 +17,9 @@ date and time to a different value while it is temporarily modified by the first
 instance.
 
 The application does not need to be installed on the target computer. It only
-necessitates the **.NET Framework** to operate. The specific target framework is
-the **.NET Framework 4 Client Profile** for backward compatibility with
-**Windows XP Service Pack 3**.
+necessitates the **.NET Framework** to operate and **needs to be run with
+administrative privileges**. The specific target framework is the **.NET Framework
+4 Client Profile** for backward compatibility with **Windows XP Service Pack
+3**.
 
 **LaunchAsDate** is released under the **MIT license**.
